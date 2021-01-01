@@ -31,7 +31,8 @@ export default () => {
                         },
                         style:{
                             backgroundColor: commonStyles.colors.primary,
-                            elevation: 0
+                            elevation: 0,
+                            height: commonStyles.heighs.tabNavigator.tabsHeight
                         },
                         indicatorStyle:{
                             backgroundColor: commonStyles.colors.secondary
@@ -44,7 +45,7 @@ export default () => {
             </NavigationContainer>
         </View>
     );
-  }
+}
 
 const styles = StyleSheet.create({
     container:{
@@ -52,14 +53,14 @@ const styles = StyleSheet.create({
     },
     header:{
         backgroundColor: commonStyles.colors.primary,
-        height: 50,
+        height: commonStyles.heighs.tabNavigator.headerHeight,
         justifyContent: 'center'
     },
     title:{
         color: 'black',
         fontSize: commonStyles.fontSize.pageTitle,
         fontWeight: 'bold',
-        marginLeft: 20,
+        marginLeft: commonStyles.spacers.margin.horizontal,
         color: commonStyles.colors.secondary
     }
 })

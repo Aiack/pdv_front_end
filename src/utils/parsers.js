@@ -1,46 +1,36 @@
-// const parseStringToFloat = (text) => {
-//     if(text.length === 0){
-//         return text
-//     }
-//     lastChar = text.substr(text.length - 1)
-//     lastChar = lastChar === ',' ? '.' : lastChar
-//     if(lastChar != '.'){
-//         if(!(/^-?[\d.]+(?:e-?\d+)?$/.test(lastChar))){
-//             lastChar = ''
-//         }
-//     }
-//     else{
-//         if(text.length === 1){
-//             lastChar = '0.'
-//         }
-//         if(text.substring(0, text.length - 1).includes('.')){
-//             lastChar = ''
-//         }
-//     }
-//     arr = text.split('.')
-//     if(arr.length > 1){
-//         if(arr[1].length > 1){
-//             lastChar = ''
-//         }
-//     }
-//     return text.substring(0, text.length - 1) + lastChar
-// }
-
-const parseStringToFloat = (text) => {
-    if(!text){
-        return '0.00'
-    }
-    textConverted = parseFloat(text) + ''
-    arr = textConverted.split('.')
-    if(arr.length === 1){
-        return textConverted + '.00'
-    }
-    else{
-        if(arr[1].length === 1){
-            return textConverted + '0'
+const parseDate = (date) => {
+    try {
+        dateArr = date.split('-')
+        if(dateArr.length > 1){
+            return dateArr[2] + '-' + dateArr[1] + '-' + dateArr[0]
         }
+    } catch (error) {
+        return null
     }
-    return text
 }
 
-export default { parseStringToFloat }
+const parseCEP = (cep) => {
+    try {
+        return cep.substr(0, 5) + '-' + cep.substr(5)
+    } catch (error) {
+        return null
+    }
+}
+
+const parseCNPJ = (cnpj) => {
+    try {
+        return cnpj.substr(0,2) + '.' + cnpj.substr(2,3) + '.' + cnpj.substr(5,3) + '/' + cnpj.substr(8,4) + '-' + cnpj.substr(12,2)
+    } catch (error) {
+        return null
+    }
+}
+
+const parseCPF = (cpf) => {
+    try {
+        return cpf.substr(0, 3) + '.' + cpf.substr(3,3) + '.' + cpf.substr(6,3) + '-' + cpf.substr(9, 2)
+    } catch (error) {
+        return null
+    }
+}
+
+export default { parseDate, parseCEP, parseCNPJ, parseCPF }

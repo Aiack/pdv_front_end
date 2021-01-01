@@ -4,7 +4,8 @@ import {
     Text, 
     StyleSheet, 
     TextInput,
-    TouchableOpacity
+    TouchableOpacity,
+    FlatList,
 } from 'react-native'
 
 import { Picker } from '@react-native-picker/picker'
@@ -13,6 +14,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 import commonStyle from '../../commonStyle'
 
 import BudgetProduct from '../../components/budget/BudgetProduct'
+import CustomerSeachModal from '../../components/budget/CustomerSearchModal'
+import CustomerCreateModal from '../../components/budget/CustomerCreateModal'
+
+import TestLists from '../../tmp/testLists'
 
 const pickerItens = [
     {label: 'Vai Levar', value: 'VaiLevar'},
@@ -20,18 +25,7 @@ const pickerItens = [
     {label: 'Entregar', value: 'Entregar'},
 ]
 
-const bugetItens = [
-    {
-        CODPROD: '000000880',
-        QUANTIDADE: 1,
-        VALORUNITARIO: 9.99,
-        ALIQDESCONTOITEM: 0,
-        VALORDESCONTOITEM: 0,
-        ALIQACRESCIMOITEM: 0,
-        VALORACRESCIMOITEM:0,
-        VALORTOTAL: 9
-    }
-]
+bugetItensList = TestLists.bugetItens
 
 export default props => {
     const [pickerItem, setPickerItem] = useState('Entregar')
@@ -40,10 +34,61 @@ export default props => {
         name:''
     })
     const [itemSearchInput, setItemSearchInput] = useState('')
+    const [productIndex, setProductIndex] = useState(null)
+    const [totalPrice, setTotalPrice] = useState('0.00')
+    const [bugetItens, setBugetItens] = useState(bugetItensList)
+    const [showCustomerSearchModal, setShowCustomerSearchModal] = useState(false)
+    const [showCustomerCreateModal, setShowCustomerCreateModal] = useState(true)
+
+    const deleteBudgetItem = (index) => {
+        newBudgetItens = [ ...bugetItens ]
+        newBudgetItens.splice(index, 1)
+        setBugetItens(newBudgetItens)
+    }
+
+    const closeAllItens = () => {
+        setProductIndex(null)
+        setBugetItens(bugetItens)
+    }
+
+    const renderBudgetProduct = ({ item, index }) => {
+        const isOpen = index === productIndex ? true : false
+
+        const onChangeData = (index, newData) => {
+            newBugetItem = bugetItens
+            newBugetItem[index] = newData
+            newTotalPrice = 0
+            bugetItens.forEach((item) => {
+                newTotalPrice += parseFloat(item.VALORTOTAL)
+            })
+            setBugetItens(newBugetItem)
+            setTotalPrice(newTotalPrice.toFixed(2))
+        }
+
+        return (
+            <BudgetProduct data={bugetItens[index]} 
+                            index={index}
+                            isOpen={isOpen} 
+                            onPress={() => setProductIndex(index)}
+                            onChangeData={onChangeData}
+                            onDelete={deleteBudgetItem}
+                            closeItem={closeAllItens}/>
+        )
+        
+    }
+
+    const changeToCustomerCreateModal = () => {
+        setShowCustomerSearchModal(false)
+        setShowCustomerCreateModal(true)
+    }
 
     return (
-        <View style={{flex:1}}>
-
+        <View style={{flex:1, backgroundColor: commonStyle.colors.background}}>
+            <CustomerSeachModal isVisible={showCustomerSearchModal} 
+                                onCancel={() => setShowCustomerSearchModal(!showCustomerSearchModal)}
+                                onCustomerCreate={changeToCustomerCreateModal}/>
+            <CustomerCreateModal isVisible={showCustomerCreateModal} 
+                                onCancel={() => setShowCustomerCreateModal(!showCustomerCreateModal)}/>
             <View style={styles.containers}>
                 <Text style={styles.containerPlaceholder}>Operação</Text>
                 <Picker selectedValue={pickerItem}
@@ -64,32 +109,37 @@ export default props => {
                             autoCapitalize='words'
                             placeholder='Nome do Cliente'/>
                 </View>
-                <TouchableOpacity style={styles.customerIconContainer}>
-                    <Icon name='user-tag' color={commonStyle.colors.secondary} size={28}/>
+                <TouchableOpacity style={styles.customerIconContainer}
+                                    onPress={() => setShowCustomerSearchModal(!showCustomerSearchModal)}>
+                    <Icon name='user-tag' color={commonStyle.colors.secondary} size={commonStyle.iconSizes.main}/>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.productsContainer}>
                 <View style={styles.itemSearchContainer}>
                     <TextInput style={styles.itemTextInput}
-                               value={itemSearchInput}
-                               onChangeText={text => setItemSearchInput(text)}
-                               placeholder='Nome do item'/>
-                    <Icon name='search' color={commonStyle.colors.secondary} size={25}/>
+                                value={itemSearchInput}
+                                onChangeText={text => setItemSearchInput(text)}
+                                placeholder='Nome do item'/>
+                    <Icon name='search' color={commonStyle.colors.secondary} size={commonStyle.iconSizes.main}/>
                 </View>
-                <BudgetProduct/>
+                <FlatList data={bugetItens}
+                        keyExtractor={(item, index) => item.ITEMID + ''}
+                        renderItem={renderBudgetProduct}
+                        removeClippedSubviews={false}/>
             </View>
 
             <View style={styles.totalContainer}>
                 <TouchableOpacity style={styles.trashContainer}>
-                    <Icon name='trash-alt' color='white' size={30}/>
+                    <Icon name='trash-alt' color='white' size={commonStyle.iconSizes.bigger}/>
                 </TouchableOpacity>
                 <View>
-                    <Text style={styles.totalValueText}>R$ 25.000,00</Text>
-                    <Text style={styles.totalItensText}>25 itens</Text>
+                    <Text style={styles.totalValueText}>{'R$ ' + totalPrice}</Text>
+                    <Text style={styles.totalItensText}>{bugetItens.length + ' itens'}</Text>
                 </View>
-                <TouchableOpacity style={styles.buyContainer}>
-                    <Icon name='shopping-cart' color='white' size={30}/>
+                <TouchableOpacity style={styles.buyContainer}
+                onPress={() => closeAllItens()}>
+                    <Icon name='shopping-cart' color='white' size={commonStyle.iconSizes.bigger}/>
                 </TouchableOpacity>
             </View>
         </View>
@@ -102,11 +152,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: 'white',
-        marginVertical: 5,
-        marginHorizontal: 15,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        height: 50,
+        marginVertical: commonStyle.spacers.margin.vertical,
+        marginHorizontal: commonStyle.spacers.margin.horizontal,
+        paddingHorizontal:commonStyle.spacers.padding.horizontal,
+        borderRadius: commonStyle.borderRadius.main,
+        height: commonStyle.heighs.NewBudget.customContainer,
         elevation:1
     },
     containerPlaceholder:{
@@ -130,8 +180,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginVertical: 5,
-        marginHorizontal: 15,
+        marginVertical: commonStyle.spacers.margin.vertical,
+        marginHorizontal: commonStyle.spacers.margin.horizontal,
+        height: commonStyle.heighs.NewBudget.customContainer,
     },
     customerNameContainer:{
         flex: 1,
@@ -139,53 +190,52 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: 'white',
-        borderRadius: 10,
-        height: 50,
+        borderRadius: commonStyle.borderRadius.main,
+        height: commonStyle.heighs.NewBudget.customContainer,
         elevation:1,
-        paddingHorizontal: 10,
+        paddingHorizontal: commonStyle.spacers.padding.horizontal,
     },
     customerIconContainer:{
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: 'white',
-        borderRadius: 10,
-        height: 50,
+        borderRadius: commonStyle.borderRadius.main,
+        height: commonStyle.heighs.NewBudget.customContainer,
         elevation:1,
-        paddingHorizontal: 10,
-        marginLeft: 10
+        paddingHorizontal: commonStyle.spacers.padding.horizontal,
+        marginLeft: commonStyle.spacers.margin.horizontal
     },
     productsContainer:{
         flex: 1,
         backgroundColor: 'white',
-        borderRadius: 10,
-        height: 60,
+        borderRadius: commonStyle.borderRadius.main,
         elevation:1,
-        marginHorizontal: 15,
-        marginVertical: 5,
-        paddingHorizontal: 10,
-        paddingTop: 10
+        marginHorizontal: commonStyle.spacers.margin.horizontal,
+        marginVertical: commonStyle.spacers.margin.vertical,
+        paddingHorizontal: commonStyle.spacers.padding.horizontal,
+        paddingTop: commonStyle.spacers.padding.vertical
     },
     totalContainer:{
-        paddingHorizontal: 10,
-        marginHorizontal: 15,
+        paddingHorizontal: commonStyle.spacers.padding.horizontal,
+        marginHorizontal: commonStyle.spacers.margin.horizontal,
         flexDirection: 'row',
-        height: 100,
+        height: commonStyle.heighs.NewBudget.totalContainer,
         justifyContent: 'space-between',
         alignItems: 'center'
     },
     trashContainer:{
-        paddingVertical: 15,
-        borderRadius: 10,
+        paddingVertical: commonStyle.spacers.padding.horizontal,
+        borderRadius: commonStyle.borderRadius.main,
         backgroundColor: '#ff4646',
-        width: 100,
+        width: commonStyle.heighs.NewBudget.buttons,
         alignItems: 'center'
     },
     buyContainer:{
-        paddingVertical: 15,
+        paddingVertical: commonStyle.spacers.padding.horizontal,
         backgroundColor: commonStyle.colors.terciary,
-        borderRadius: 10,
-        width: 100,
+        borderRadius: commonStyle.borderRadius.main,
+        width: commonStyle.heighs.NewBudget.buttons,
         alignItems: 'center'
     },
     totalValueText:{
@@ -193,7 +243,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: 'green',
         fontWeight: 'bold',
-        fontSize: 30
+        fontSize: commonStyle.fontSize.finalTotal
     },
     totalItensText:{
         fontFamily: commonStyle.fontFamily,
