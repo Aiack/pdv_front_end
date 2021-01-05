@@ -23,7 +23,7 @@ export default {
         primary: 'white',
         secondary: '#fc8621',
         terciary: '#16697a',
-        background: '#f8f1f1', 
+        background: '#f6f6f6', 
         mainText: '#222',
         subText: '#555',
         separator: '#e6e6e6',
@@ -49,7 +49,8 @@ export default {
         button: normalize(14),
         formText: normalize(16),
         errorText: normalize(12),
-        finalTotal: normalize(30)
+        finalTotal: normalize(30),
+        bigMessage: normalize(50)
     },
     spacers:{
         margin:{
@@ -78,7 +79,12 @@ export default {
             price: normalize(50),
             priceChangers: normalize(50),
             customerButton: normalize(50)
-        }
+        },
+        buttons:{
+            height: normalize(50),
+            width: normalize(100)
+        },
+        sphere: normalize(15)
     },
     borderRadius:{
         main: normalize(10),
@@ -87,5 +93,6 @@ export default {
     iconSizes:{
         main: normalize(25),
         bigger: normalize(30),
+        giant: normalize(100)
     }
 }

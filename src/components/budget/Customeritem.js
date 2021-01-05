@@ -15,22 +15,17 @@ export default props => {
         return 'SEM COMPLEMENTO'
     }
 
-    const setNumLogra = (num) => {
-        if(num){
-            return num
-        }
-        return 'S/N'
-    }
+
 
     const setBoderColor = (flag) => {
-        if(flag === 'S'){
+        if(flag === 'Y'){
             return commonStyles.colors.alertColors.faturado
         }
         return commonStyles.colors.alertColors.error
     }
 
     const CNPJorCPF = (flag) => {
-        if(flag === 'S'){
+        if(flag === 'Y'){
             return parsers.parseCPF(props.CPF)
         }
         return parsers.parseCNPJ(props.CNPJ)
@@ -38,12 +33,14 @@ export default props => {
 
 
     return (
-        <TouchableOpacity style={[styles.container, {borderLeftColor: setBoderColor(props.FLAGFISICA)}]}>
+        <TouchableOpacity style={[styles.container, {borderLeftColor: setBoderColor(props.FLAGFISICA)}]}
+        onPress={() => props.setCustomerData(props.index)}
+        onLongPress={() => props.onLongPress(props.index)}>
             <View style={styles.dataContainer}>
                 <Text style={styles.cod}>{props.CODIGO + ', criado ' + parsers.parseDate(props.DATCAD)}</Text>
                 <Text style={styles.NOMECLI}>{props.NOMECLI}</Text>
                 <Text style={styles.NOMECLI}>{CNPJorCPF(props.FLAGFISICA) + ', FONE: ' + props.TELEFONE}</Text>
-                <Text style={styles.adresstext}>{props.ENDERECO + ' Nº ' + setNumLogra(props.NUMEROLOGRADOURO)}</Text>
+                <Text style={styles.adresstext}>{props.ENDERECO + ' Nº ' + parsers.parseNumLogr(props.NUMEROLOGRADOURO)}</Text>
                 <Text style={styles.adresstext}>{props.BAIRRO}</Text>
                 <Text style={styles.adresstext}>{setComplemento(props.COMPLEMENTOLOGRADOURO)}</Text>
                 <Text style={styles.adresstext}>{props.CIDADE + ', ' + props.ESTADO + ' - ' + parsers.parseCEP(props.CEP)}</Text>

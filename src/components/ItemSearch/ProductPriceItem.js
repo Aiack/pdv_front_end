@@ -1,57 +1,55 @@
 import React from 'react'
-import { StyleSheet, View, Text } from 'react-native'
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native'
 
 import * as Animateable from 'react-native-animatable'
 
 import commonStyles from '../../commonStyle'
 
-const formatValue = (value) => {
-    const valueAr = value.split('.')
-    if(valueAr.length === 1){
-        return value + '.00'
-    }
-    else{
-        if(valueAr[1].length == 1){
-            return value + '0'
-        }
-    }
-    return value
-}
-
 export default props => {
+    const parseMaxDiscount = (value) => {
+        if(value === '-1'){
+            return '100'
+        }
+        return value
+    }
+
+    const parseUni = (value) => {
+        if(value === 'None'){
+            return 'UN'
+        }
+        return value
+    }
+
     return (
-        <Animateable.View  animation='bounceIn' delay={props.delay}>
-            <View style={styles.container}>
-                <View style={styles.nameContainer}>
-                    <Text style={styles.name}>{props.NOMEPROD}</Text>
-                    <Text style={styles.cod}>{props.CODIGO}</Text>
-                </View>
-                <View style={styles.valueConainer}>
-                    <Text style={styles.value}>{'R$ ' + formatValue(props.PRECO)}</Text>
-                </View>
+        <TouchableOpacity style={styles.container} disabled={!props.isTouchable} onPress={() => props.addBudgetItem(props.index)}>
+            <View style={styles.nameContainer}>
+                <Text style={styles.cod}>{props.CODIGO + ', desc. max: ' + parseMaxDiscount(props.DESCMAXIMO) + ' %'}</Text>
+                <Text style={styles.name} numberOfLines={2}>{props.NOMEPROD}</Text>
             </View>
-        </Animateable.View>
+            <View style={styles.valueConainer}>
+                <Text style={styles.value}>{'R$ ' + props.VALORUNITARIO}</Text>
+                <Text style={styles.name}>{'Estoque: ' + props.ESTATU + ' ' + parseUni(props.UNIDADE) + 's'}</Text>
+            </View>
+        </TouchableOpacity>
     )
 }
 
 const styles = StyleSheet.create({
     container:{
         flexDirection: 'row',
-        marginHorizontal: 15,
-        marginVertical: 5,
-        elevation: 2,
-        backgroundColor: 'white',
-        borderRadius: 10
+        paddingHorizontal: commonStyles.spacers.padding.horizontal,
+        paddingVertical: commonStyles.spacers.padding.vertical,
+        borderBottomWidth: 1,
+        borderBottomColor: commonStyles.colors.separator,
+        height: commonStyles.heighs.NewBudget.customContainer * 1.5
     },
     nameContainer:{
         flex: 3,
-        paddingLeft: 10,
-        paddingVertical: 10
     },
     valueConainer:{
         flex: 2,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     cod:{
         fontFamily: commonStyles.fontFamily,
@@ -62,13 +60,12 @@ const styles = StyleSheet.create({
         fontFamily: commonStyles.fontFamily,
         fontSize: commonStyles.fontSize.listItem.title,
         fontWeight: 'bold',
-        paddingBottom: 10
     },
     value:{
         fontFamily: commonStyles.fontFamily,
         textAlign: 'right',
-        fontSize: commonStyles.fontSize.listItem.title,
+        fontSize: commonStyles.fontSize.listItem.title * 1.3,
         fontWeight: 'bold',
-        color: 'green'
+        color: commonStyles.colors.alertColors.faturado
     }
 })

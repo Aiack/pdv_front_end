@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { StyleSheet, View, Text, TextInput } from 'react-native'
 
 import commonStyle from '../../commonStyle'
+import TextInputMask from 'react-native-text-input-mask'
 
 export default props => {
+    const [value, setValue] = useState(props.value)
+
     const setFlex = () =>{
         if(!props.flex){
             return {}
@@ -11,14 +14,36 @@ export default props => {
         return {flex: props.flex}
     }
 
+
+    const haveMask = (mask) => {
+        if(props.mask){
+            return (
+                <TextInputMask style={styles.input}
+                value={props.data[props.varName]}
+                onChangeText={(val) => props.setInfo(val, props.varName)}
+                autoCapitalize='characters'
+                mask={props.mask}
+                keyboardType={props.keyboardType}
+                placeholder={props.inputPlaceholder}
+                maxLength={props.maxLength}/>
+                )
+        }
+        return (
+            <TextInput style={styles.input}
+            value={props.data[props.varName]}
+            onChangeText={(val) => props.setInfo(val, props.varName)}
+            autoCapitalize='characters'
+            mask={props.mask}
+            keyboardType={props.keyboardType}
+            placeholder={props.inputPlaceholder}
+            maxLength={props.maxLength}/>
+        )
+    }
+
     return (
         <View style={[setFlex(), styles.container]}>
             <Text style={styles.containerPlaceholder}>{props.placeholder}</Text>
-            <TextInput style={styles.input}
-                    value={props.value}
-                    onChangeText={props.onChangeText}
-                    autoCapitalize='words'
-                    placeholder={props.inputPlaceholder}/>
+            {haveMask(props.mask)}
         </View>
     )
 }
@@ -32,7 +57,8 @@ const styles = StyleSheet.create({
         borderRadius: commonStyle.borderRadius.main,
         elevation:1,
         paddingHorizontal: commonStyle.spacers.padding.horizontal,
-        marginHorizontal: commonStyle.spacers.margin.horizontal,
+        marginLeft: commonStyle.spacers.margin.horizontal,
+        marginRight: commonStyle.spacers.margin.horizontal,
         marginVertical: commonStyle.spacers.margin.vertical,
         height: commonStyle.heighs.NewBudget.customContainer
     },

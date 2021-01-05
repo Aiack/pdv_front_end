@@ -6,198 +6,44 @@ import Swipeable from 'react-native-gesture-handler/Swipeable'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 
 import commonStyles from '../../commonStyle'
-
-const basicInfo = {
-    unitaryPrice: '0.50',
-    maxDiscout: 0.20
-}
-
-import { Toast, showToast } from '../toast'
-
-let onTextChange = false
+import budgetListCalculation from '../../utils/budgetListCalculation'
+import parsers from '../../utils/parsers'
 
 export default props => {
-    const basicInfo = {
-        unitaryPrice: parseFloat(props.data.PRECOTABELA).toFixed(2),
-        maxDiscout: props.data.DESCMAXIMO
+    const [itemPrice, setItemPrice] = useState(props.VALORUNITARIO)
+    const [totalPrice, setTotalPrice] = useState(props.VALORTOTAL)
+    const [quantity, setQuantity] = useState(props.QUANTIDADE)
+    const [discountValue, setDiscountValue] = useState(props.VALORDESCONTOITEM)
+    const [discountAliquo, setDiscountAliquo] = useState(props.ALIQDESCONTOITEM)
+    const [acrescValue, setAcrescValue] = useState(props.VALORACRESCIMOITEM)
+    const [acrescAliquo, setAcrescAliquo] = useState(props.ALIQACRESCIMOITEM)
+
+    console.log("props: " + props.VALORUNITARIO + ', itemPrice: ' + itemPrice)
+
+    const updateList = (changeBy, value=null) => {
+        updatedItem = {
+            PRECOTABELA: props.PRECOTABELA,
+            VALORUNITARIO: itemPrice,
+            VALORTOTAL: totalPrice,
+            QUANTIDADE: value && changeBy === 'quantity' ? value : quantity,
+            VALORDESCONTOITEM: discountValue,
+            ALIQDESCONTOITEM: value && changeBy === 'discountAliquo' ? value : discountAliquo,
+            VALORACRESCIMOITEM: acrescValue,
+            ALIQACRESCIMOITEM: value && changeBy === 'acrescAliquo' ? value : acrescAliquo,
+            DESCMAXIMO: props.DESCMAXIMO,
+            updateCounter: props.updateCounter
+        }
+
+        calculatedItem = budgetListCalculation.recalculateBudgetList(updatedItem, changeBy)
+        setItemPrice(calculatedItem.VALORUNITARIO)
+        setTotalPrice(calculatedItem.VALORTOTAL)
+        setQuantity(calculatedItem.QUANTIDADE)
+        setDiscountValue(calculatedItem.VALORDESCONTOITEM)
+        setDiscountAliquo(calculatedItem.ALIQDESCONTOITEM)
+        setAcrescValue(calculatedItem.VALORACRESCIMOITEM)
+        setAcrescAliquo(calculatedItem.ALIQACRESCIMOITEM)
+        props.onChangeData(calculatedItem)
     }
-
-    console.log('Update!')
-
-    const [itemPrice, setItemPrice] = useState(parseFloat(props.data.VALORUNITARIO).toFixed(2))
-    const [totalPrice, setTotalPrice] = useState(parseFloat(props.data.VALORTOTAL).toFixed(2))
-    const [quantity, setQuantity] = useState(parseFloat(props.data.QUANTIDADE).toFixed(1))
-    const [discountValue, setDiscountValue] = useState(parseFloat(props.data.VALORDESCONTOITEM).toFixed(2))
-    const [discountAliquo, setDiscountAliquo] = useState(parseFloat(props.data.ALIQDESCONTOITEM).toFixed(2))
-    const [acrescValue, setAcrescValue] = useState(parseFloat(props.data.VALORACRESCIMOITEM).toFixed(2))
-    const [acrescAliquo, setAcrescAliquo] = useState(parseFloat(props.data.ALIQACRESCIMOITEM).toFixed(2))
-
-    const ifEmptyReturnZero = (text) => {
-        if(parseFloat(text)){
-            return text
-        }
-        else{
-            return '0'
-        }
-    }
-
-    const exceedMaxDiscount = (aliquote) => {
-        if(aliquote < 1 && (1 - aliquote) > basicInfo.maxDiscout){
-            return true
-        }
-        return false
-    }
-
-    useEffect(() => {
-        newData = { ...props.data }
-        newData.VALORUNITARIO = itemPrice
-        newData.VALORTOTAL = totalPrice
-        newData.QUANTIDADE = quantity
-        newData.VALORDESCONTOITEM = discountValue
-        newData.ALIQDESCONTOITEM = discountAliquo
-        newData.VALORACRESCIMOITEM = acrescValue
-        newData.ALIQACRESCIMOITEM = acrescAliquo
-        props.onChangeData(props.index, newData)
-    })
-
-    updateDescAcres = (aliquote) => {
-        if(aliquote > 1){
-            setDiscountAliquo('0.00')
-            setDiscountValue('0.00')
-            acresAliq = (aliquote - 1) * 100
-            setAcrescAliquo(acresAliq.toFixed(2))
-            setAcrescValue(((acresAliq / 100) * basicInfo.unitaryPrice * parseFloat(quantity)).toFixed(2))
-        }
-        else{
-            setAcrescAliquo('0.00')
-            setAcrescValue('0.00')
-            if(exceedMaxDiscount(aliquote)){
-                discAliq = basicInfo.maxDiscout * 100
-            }
-            else{
-                discAliq = (1 - aliquote) * 100
-            }
-            setDiscountAliquo(discAliq.toFixed(2))
-            setDiscountValue(((discAliq / 100) * basicInfo.unitaryPrice * parseFloat(quantity)).toFixed(2))
-        }
-    }
-
-    useEffect(() => {
-        if(onTextChange){
-            let aliquote = (itemPrice / basicInfo.unitaryPrice)
-            item_price = parseFloat(itemPrice)
-            if(exceedMaxDiscount(aliquote)){
-                item_price = (parseFloat(basicInfo.unitaryPrice) * (1 - basicInfo.maxDiscout)).toFixed(2)
-                aliquote = (item_price / basicInfo.unitaryPrice)
-                showToast('warning', 'Desconto excedido', 'Desconto maximo para o produto excedido')
-            }
-
-            total_price = parseFloat(item_price) * parseFloat(quantity)
-            setItemPrice(item_price.toFixed(2))
-            setTotalPrice(total_price.toFixed(2))
-            
-            updateDescAcres(aliquote)
-        }
-        onTextChange = false
-    }, [itemPrice])
-
-    useEffect(() => {
-        if(onTextChange){
-            item_price = parseFloat(totalPrice) / parseFloat(quantity)
-            let aliquote = (item_price / basicInfo.unitaryPrice)
-            total_price = parseFloat(totalPrice)
-
-            if(exceedMaxDiscount(aliquote)){
-                item_price = parseFloat(basicInfo.unitaryPrice) * (1 - basicInfo.maxDiscout)
-                total_price = item_price * parseFloat(quantity)
-                aliquote = (item_price / basicInfo.unitaryPrice)
-                showToast('warning', 'Desconto excedido', 'Desconto maximo para o produto excedido')
-            }
-            setItemPrice(item_price.toFixed(2))
-            setTotalPrice(total_price.toFixed(2))
-
-            updateDescAcres(aliquote)
-        }
-        onTextChange = false
-    }, [totalPrice])
-
-    useEffect(() => {
-        if(onTextChange){
-            let aliquote = (itemPrice / basicInfo.unitaryPrice)
-            updateDescAcres(aliquote)
-            total_price = parseFloat(itemPrice) * parseFloat(quantity)
-            setTotalPrice(total_price.toFixed(2))
-        }
-        onTextChange = false
-    }, [quantity])
-
-    useEffect(() => {
-        if(onTextChange){
-            discountPerItem = parseFloat(discountValue) / parseFloat(quantity)
-            item_price = parseFloat(basicInfo.unitaryPrice) - discountPerItem
-            let aliquote = (item_price / basicInfo.unitaryPrice)
-            if(exceedMaxDiscount(aliquote)){
-                item_price = parseFloat(basicInfo.unitaryPrice) * (1 - basicInfo.maxDiscout)
-                discountPerItem = parseFloat(basicInfo.unitaryPrice) - item_price
-                setDiscountValue((discountPerItem * parseFloat(quantity)).toFixed(2))
-            }
-            discount_aliquo = ((discountPerItem)/parseFloat(basicInfo.unitaryPrice)) * 100
-            item_price += (parseFloat(acrescValue) / parseFloat(quantity))
-            setItemPrice(item_price.toFixed(2))
-            setDiscountAliquo(discount_aliquo.toFixed(2))
-            setTotalPrice((item_price * parseFloat(quantity)).toFixed(2))
-        }
-        onTextChange = false
-    }, [discountValue])
-
-    useEffect(() => {
-        if(onTextChange){
-            discount_aliquo = parseFloat(discountAliquo) / 100
-            if(discount_aliquo > basicInfo.maxDiscout){
-                discount_aliquo = basicInfo.maxDiscout
-                setDiscountAliquo((discount_aliquo * 100).toFixed(2))
-            }
-            item_price = parseFloat(basicInfo.unitaryPrice) * ( 1 - discount_aliquo)
-            discount_value = (basicInfo.unitaryPrice - item_price) * parseFloat(quantity)
-            item_price += (parseFloat(acrescValue) / parseFloat(quantity))
-            total_price = item_price * parseFloat(quantity)
-        
-            setItemPrice(item_price.toFixed(2))
-            setTotalPrice(total_price.toFixed(2))
-            setDiscountValue(discount_value.toFixed(2))
-        }
-        onTextChange = false
-    }, [discountAliquo])
-
-    useEffect(() => {
-        if(onTextChange){
-            acresPerItem = parseFloat(acrescValue) / parseFloat(quantity)
-            item_price = parseFloat(basicInfo.unitaryPrice) + acresPerItem
-            let aliquote = (item_price / basicInfo.unitaryPrice)
-            acres_aliquo = ((acresPerItem)/parseFloat(basicInfo.unitaryPrice)) * 100
-            item_price -= (parseFloat(discountValue) / parseFloat(quantity))
-            setItemPrice(item_price.toFixed(2))
-            setAcrescAliquo(acres_aliquo.toFixed(2))
-            setTotalPrice((item_price * parseFloat(quantity)).toFixed(2))
-        }
-        onTextChange = false
-    }, [acrescValue])
-
-    useEffect(() => {
-        if(onTextChange){
-            acresc_aliquo = parseFloat(acrescAliquo) / 100
-
-            item_price = parseFloat(basicInfo.unitaryPrice) * ( 1 + acresc_aliquo)
-            acresc_value = (item_price - basicInfo.unitaryPrice) * parseFloat(quantity)
-            item_price -= (parseFloat(discountValue) / parseFloat(quantity))
-            total_price = item_price * parseFloat(quantity)
-            
-            setItemPrice(item_price.toFixed(2))
-            setTotalPrice(total_price.toFixed(2))
-            setAcrescValue(acresc_value.toFixed(2))
-        }
-        onTextChange = false
-    }, [acrescAliquo])
 
     const isOpen = () => {
         if(props.isOpen){
@@ -209,9 +55,13 @@ export default props => {
                     <View style={styles.quantityContainer}>
                         <TouchableOpacity style={[styles.plusMinusContainer, , styles.minusBorder]}
                                         onPress={() => {
-                                            onTextChange = true
-                                            parseFloat(quantity) > 1 ? setQuantity((Math.round((parseFloat(quantity) - 1)*10)/10).toFixed(1) + '') : null
-                                            }}>
+                                            quantityValue = parseFloat(quantity) > 1 ? (parseFloat(quantity) - 1).toFixed(1) : '1.0'
+                                            updateList('quantity', quantityValue)
+                                            }}
+                                        onLongPress={() => {
+                                            quantityValue = '1.0'
+                                            updateList('quantity', quantityValue)
+                                        }}>
                             <Text style={styles.plusMinusButtons}>-</Text>
                         </TouchableOpacity>
                         <TextInputMask
@@ -222,20 +72,14 @@ export default props => {
                                 selectTextOnFocus={true}
                                 onChangeText={(val) => setQuantity(val)}
                                 onBlur={() => {
-                                    onTextChange = true
-                                    if(parseFloat(quantity)){
-                                        setQuantity(parseFloat(quantity).toFixed(2))
-                                    }
-                                    else{
-                                        setQuantity(parseFloat('1').toFixed(2))
-                                    }
+                                    updateList('quantity')
                                 }}
                                 textAlign='center'
                         />
                         <TouchableOpacity style={[styles.plusMinusContainer, styles.plusBorder]}
                                         onPress={() => {
-                                            onTextChange = true
-                                            setQuantity((Math.round((parseFloat(quantity) + 1)*10)/10).toFixed(1) + '')
+                                            quantityValue = (parseFloat(quantity) + 1).toFixed(1)
+                                            updateList('quantity', quantityValue)
                                             }}>
                             <Text style={styles.plusMinusButtons}>+</Text>
                         </TouchableOpacity>
@@ -249,12 +93,12 @@ export default props => {
                     <View style={styles.quantityContainer}>
                         <TouchableOpacity style={[styles.plusMinusContainer, styles.minusBorder]}
                                         onPress={() => {
-                                            onTextChange = true
-                                            parseFloat(acrescAliquo) - 1 >= 0 ? setAcrescAliquo((Math.round((parseFloat(acrescAliquo) - 1)*10)/10).toFixed(2) + '') : null
+                                            acrescAliquoValue = parseFloat(acrescAliquo) - 1 >= 0 ? (parseFloat(acrescAliquo) - 1).toFixed(2) : null
+                                            updateList('acrescAliquo', acrescAliquoValue)
                                             }}
                                         onLongPress={() => {
-                                            onTextChange = true
-                                            parseFloat(acrescAliquo) - 10 >= 0 ? setAcrescAliquo((Math.round((parseFloat(acrescAliquo) - 10)*10)/10).toFixed(2) + '') : null
+                                            acrescAliquoValue = parseFloat(acrescAliquo) - 10 >= 0 ? (parseFloat(acrescAliquo) - 10).toFixed(2) : '0.00'
+                                            updateList('acrescAliquo', acrescAliquoValue)
                                         }}
                                             >
                             <Text style={styles.plusMinusButtons}>-</Text>
@@ -268,8 +112,7 @@ export default props => {
                                 selectTextOnFocus={true}
                                 onChangeText={(val) => setAcrescValue(val)}
                                 onBlur={() => {
-                                    onTextChange = true
-                                    setAcrescValue(parseFloat(ifEmptyReturnZero(acrescValue)).toFixed(2))
+                                    updateList('acrescValue')
                                 }}
                                 textAlign='center'
                         />
@@ -282,19 +125,18 @@ export default props => {
                                 selectTextOnFocus={true}
                                 onChangeText={(val) => setAcrescAliquo(val)}
                                 onBlur={() => {
-                                    onTextChange = true
-                                    setAcrescAliquo(parseFloat(ifEmptyReturnZero(acrescAliquo)).toFixed(2))
+                                    updateList('acrescAliquo')
                                 }}
                                 textAlign='center'
                         />
                         <TouchableOpacity style={[styles.plusMinusContainer, styles.plusBorder]}
                                         onPress={() => {
-                                            onTextChange = true
-                                            setAcrescAliquo((Math.round((parseFloat(acrescAliquo) + 1)*10)/10).toFixed(2) + '')
+                                            acrescAliquoValue = (parseFloat(acrescAliquo) + 1).toFixed(2)
+                                            updateList('acrescAliquo', acrescAliquoValue)
                                         }}
                                         onLongPress={() => {
-                                            onTextChange = true
-                                            setAcrescAliquo((Math.round((parseFloat(acrescAliquo) + 10)*10)/10).toFixed(2) + '')
+                                            acrescAliquoValue = (parseFloat(acrescAliquo) + 10).toFixed(2)
+                                            updateList('acrescAliquo', acrescAliquoValue)
                                         }}>
                             <Text style={styles.plusMinusButtons}>+</Text>
                         </TouchableOpacity>
@@ -307,12 +149,12 @@ export default props => {
                     <View style={styles.quantityContainer}>
                         <TouchableOpacity style={[styles.plusMinusContainer, styles.minusBorder]}
                                         onPress={() => {
-                                            onTextChange = true
-                                            parseFloat(discountAliquo) - 1 >= 0 ? setDiscountAliquo((Math.round((parseFloat(discountAliquo) - 1)*10)/10).toFixed(1) + '') : null
+                                            discountAliquoValue = parseFloat(discountAliquo) - 1 >= 0 ? (parseFloat(discountAliquo) - 1).toFixed(2) : null
+                                            updateList('discountAliquo', discountAliquoValue)
                                             }}
                                         onLongPress={() => {
-                                            onTextChange = true
-                                            parseFloat(discountAliquo) - 10 >= 0 ? setDiscountAliquo((Math.round((parseFloat(discountAliquo) - 10)*10)/10).toFixed(1) + '') : null
+                                            discountAliquoValue = parseFloat(discountAliquo) - 10 >= 0 ? (parseFloat(discountAliquo) - 10).toFixed(2) : '0.00'
+                                            updateList('discountAliquo', discountAliquoValue)
                                         }}
                                             >
                             <Text style={styles.plusMinusButtons}>-</Text>
@@ -326,8 +168,7 @@ export default props => {
                                 selectTextOnFocus={true}
                                 onChangeText={(val) => setDiscountValue(val)}
                                 onBlur={() => {
-                                    onTextChange = true
-                                    setDiscountValue(parseFloat(ifEmptyReturnZero(discountValue)).toFixed(2))
+                                    updateList('discountValue')
                                 }}
                                 textAlign='center'
                         />
@@ -340,19 +181,18 @@ export default props => {
                                 selectTextOnFocus={true}
                                 onChangeText={(val) => setDiscountAliquo(val)}
                                 onBlur={() => {
-                                    onTextChange = true
-                                    setDiscountAliquo(parseFloat(ifEmptyReturnZero(discountAliquo)).toFixed(2))
+                                    updateList('discountAliquo')
                                 }}
                                 textAlign='center'
                         />
                         <TouchableOpacity style={[styles.plusMinusContainer, styles.plusBorder]}
                                         onPress={() => {
-                                            onTextChange = true
-                                            setDiscountAliquo((Math.round((parseFloat(discountAliquo) + 1)*10)/10).toFixed(2) + '')
+                                            discountAliquoValue = (parseFloat(discountAliquo) + 1).toFixed(2)
+                                            updateList('discountAliquo', discountAliquoValue)
                                         }}
                                         onLongPress={() => {
-                                            onTextChange = true
-                                            setDiscountAliquo((Math.round((parseFloat(discountAliquo) + 10)*10)/10).toFixed(2) + '')
+                                            discountAliquoValue = (parseFloat(discountAliquo) + 10).toFixed(2)
+                                            updateList('discountAliquo', discountAliquoValue)
                                         }}>
                             <Text style={styles.plusMinusButtons}>+</Text>
                         </TouchableOpacity>
@@ -367,7 +207,7 @@ export default props => {
     const renderLeftContent = () => {
         return (
             <TouchableOpacity style={styles.leftContent}
-                              onPress={() => props.onDelete(props.index)}>
+                                onPress={() => props.onDelete(props.index)}>
                 <Icon name='trash-alt' color='white' size={commonStyles.iconSizes.bigger}/>
             </TouchableOpacity>
         )
@@ -380,10 +220,12 @@ export default props => {
                             onPress={props.onPress}>
                 <View style={{flexDirection:'row', height: commonStyles.heighs.BudgetProduct.name}}>
                     <TouchableOpacity style={{flex:6}}
-                                      onPress={() => props.closeItem()}
-                                      disabled={!props.isOpen}>
-                        <Text style={styles.cod}>{props.data.CODPROD + ' - R$ ' + props.data.PRECOTABELA}</Text>
-                        <Text style={styles.name} numberOfLines={2}>{props.data.NOMEPROD}</Text>
+                                        onPress={() => props.closeItem()}
+                                        disabled={!props.isOpen}>
+                        <Text style={styles.cod}>{
+                        props.CODPROD + ' - R$ ' + props.PRECOTABELA + ', desc max: ' + parsers.parseDiscountMax(props.DESCMAXIMO) + ' %'
+                        }</Text>
+                        <Text style={styles.name} numberOfLines={2}>{props.NOMEPROD}</Text>
                     </TouchableOpacity>
                     <View style={[styles.itemPriceContainer]}>
                         <View style={{flexDirection:'row', alignItems: 'center'}}>
@@ -391,21 +233,18 @@ export default props => {
                             <TextInputMask
                                 style={styles.itemPrice}
                                 keyboardType='phone-pad'
-                                defaultValue={itemPrice}
+                                value={itemPrice}
                                 mask={"[999999].[99]"}
                                 selectTextOnFocus={true}
                                 onChangeText={(val) => {
-                                    onTextChange = false
                                     setItemPrice(val)
                                 }}
                                 onBlur={() => {
-                                    item_price = parseFloat(ifEmptyReturnZero(itemPrice)).toFixed(3)
-                                    onTextChange = true
-                                    setItemPrice(item_price)
+                                    updateList('itemPrice')
                                 }}
                                 editable={props.isOpen}
                             />
-                            <Text style={styles.descriptionText}>{' ' + props.data.UNIDADE}</Text>
+                            <Text style={styles.descriptionText}>{' ' + props.UNIDADE}</Text>
                         </View>
                             <View style={{ justifyContent: 'space-evenly'}}>
                                 <View style={{flexDirection:'row', alignItems:'center', height:commonStyles.heighs.BudgetProduct.price}}>
@@ -418,8 +257,7 @@ export default props => {
                                         selectTextOnFocus={true}
                                         onChangeText={(val) => setTotalPrice(val)}
                                         onBlur={() => {
-                                            onTextChange = true
-                                            setTotalPrice(parseFloat(ifEmptyReturnZero(totalPrice)).toFixed(2))
+                                            updateList('totalPrice')
                                         }}
                                         editable={props.isOpen}
                                     />
@@ -433,9 +271,13 @@ export default props => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         paddingBottom:commonStyles.spacers.padding.vertical}}>
-                        <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.error}]}>{'R$ ' + acrescValue}</Text>
+                        <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.error}]}>{
+                        'R$ ' + acrescValue + ' - R$ ' + ((parseFloat(acrescValue) / parseFloat(quantity)).toFixed(2) + ' p/ ' + props.UNIDADE)
+                        }</Text>
                         <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.espera}]}>{'X ' + quantity}</Text>
-                        <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.faturado}]}>{'R$ ' + discountValue}</Text>
+                        <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.faturado}]}>{
+                        'R$ ' + discountValue + ' - R$ ' + ((parseFloat(discountValue) / parseFloat(quantity)).toFixed(2) + ' p/ ' + props.UNIDADE)
+                        }</Text>
                     </View>
                 )}
                 {isOpen()}
@@ -505,7 +347,8 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     descriptionText:{
-        fontFamily: commonStyles.fontFamily
+        fontFamily: commonStyles.fontFamily,
+        fontSize: commonStyles.fontSize.listItem.secondaryText
     },
     textInputSelectors:{
         fontFamily: commonStyles.fontFamily,

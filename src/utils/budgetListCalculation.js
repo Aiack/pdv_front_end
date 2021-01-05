@@ -1,13 +1,25 @@
-export default recalculateBudgetList = (list, recalculateBy) => {
-    PRECOTABELA = parseFloat(list.PRECOTABELA)
-    VALORUNITARIO = parseFloat(list.VALORUNITARIO)
-    VALORTOTAL = parseFloat(list.VALORTOTAL)
-    QUANTIDADE = parseFloat(list.QUANTIDADE)
-    VALORDESCONTOITEM = parseFloat(list.VALORDESCONTOITEM)
-    ALIQDESCONTOITEM = parseFloat(list.ALIQDESCONTOITEM)
-    VALORACRESCIMOITEM = parseFloat(list.VALORACRESCIMOITEM)
-    ALIQACRESCIMOITEM = parseFloat(list.ALIQACRESCIMOITEM)
-    DESCMAXIMO = parseFloat(list.DESCMAXIMO)
+import parsers from '../utils/parsers'
+
+const ifEmptyReturnZero = (text) => {
+    num = parseFloat(text)
+    if(num){
+        return num
+    }
+    else{
+        return 0
+    }
+}
+
+const recalculateBudgetList = (list, changeBy) => {
+    PRECOTABELA = ifEmptyReturnZero(list.PRECOTABELA)
+    VALORUNITARIO = ifEmptyReturnZero(list.VALORUNITARIO)
+    VALORTOTAL = ifEmptyReturnZero(list.VALORTOTAL)
+    QUANTIDADE = ifEmptyReturnZero(list.QUANTIDADE)
+    VALORDESCONTOITEM = ifEmptyReturnZero(list.VALORDESCONTOITEM)
+    ALIQDESCONTOITEM = ifEmptyReturnZero(list.ALIQDESCONTOITEM)
+    VALORACRESCIMOITEM = ifEmptyReturnZero(list.VALORACRESCIMOITEM)
+    ALIQACRESCIMOITEM = ifEmptyReturnZero(list.ALIQACRESCIMOITEM)
+    DESCMAXIMO = ifEmptyReturnZero(parsers.parseDiscountMax(list.DESCMAXIMO))
 
     const updateDescAcres = (aliquote) => {
         if(aliquote > 1){
@@ -38,7 +50,7 @@ export default recalculateBudgetList = (list, recalculateBy) => {
         return false
     }
 
-    switch (recalculateBy) {
+    switch (changeBy) {
         case 'itemPrice':
             aliquote = VALORUNITARIO / PRECOTABELA
             if(exceedMaxDiscount(aliquote)){
@@ -61,8 +73,11 @@ export default recalculateBudgetList = (list, recalculateBy) => {
             break
 
         case 'quantity':
-            aliquote = VALORUNITARIO / PRECOTABELA
-            updateDescAcres(aliquote)
+            if(!QUANTIDADE){
+                QUANTIDADE = 1
+            }
+            VALORACRESCIMOITEM = (VALORACRESCIMOITEM / QUANTIDADE) * QUANTIDADE
+            VALORDESCONTOITEM = (VALORDESCONTOITEM / QUANTIDADE) * QUANTIDADE
             VALORTOTAL = VALORUNITARIO * QUANTIDADE
             break
 
@@ -84,7 +99,7 @@ export default recalculateBudgetList = (list, recalculateBy) => {
             discount_aliquo = ALIQDESCONTOITEM
             if(discount_aliquo > DESCMAXIMO){
                 discount_aliquo = DESCMAXIMO
-                ALIQDESCONTOITEM = discount_aliquo * 100
+                ALIQDESCONTOITEM = discount_aliquo
             }
             VALORUNITARIO = PRECOTABELA * ( 1 - (ALIQDESCONTOITEM / 100))
             VALORDESCONTOITEM = (PRECOTABELA - VALORUNITARIO) * QUANTIDADE
@@ -97,6 +112,7 @@ export default recalculateBudgetList = (list, recalculateBy) => {
             VALORUNITARIO = PRECOTABELA + acresPerItem
             ALIQACRESCIMOITEM = ((acresPerItem)/ PRECOTABELA) * 100
             VALORUNITARIO -= (VALORDESCONTOITEM / QUANTIDADE)
+            VALORTOTAL = VALORUNITARIO * QUANTIDADE
             break
         
         case 'acrescAliquo':
@@ -118,9 +134,9 @@ export default recalculateBudgetList = (list, recalculateBy) => {
     ALIQDESCONTOITEM = ALIQDESCONTOITEM.toFixed(2)
     VALORACRESCIMOITEM = VALORACRESCIMOITEM.toFixed(2)
     ALIQACRESCIMOITEM = ALIQACRESCIMOITEM.toFixed(2)
-    DESCMAXIMO = DESCMAXIMO.toFixed(2)
+    DESCMAXIMO = DESCMAXIMO.toFixed(0)
 
-    return {
+    return (list = {
         PRECOTABELA,
         VALORUNITARIO,
         VALORTOTAL,
@@ -130,6 +146,7 @@ export default recalculateBudgetList = (list, recalculateBy) => {
         VALORACRESCIMOITEM,
         ALIQACRESCIMOITEM,
         DESCMAXIMO
-    }
-
+    })
 }
+
+export default { recalculateBudgetList }

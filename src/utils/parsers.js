@@ -33,4 +33,33 @@ const parseCPF = (cpf) => {
     }
 }
 
-export default { parseDate, parseCEP, parseCNPJ, parseCPF }
+const parseDiscountMax = (val) => {
+    if(val === '-1'){
+        return '100'
+    }
+    return val
+}
+
+const parseNumLogr = (val) => {
+    if(val || val === 'None'){
+        return val
+    }
+    return 'S/N'
+}
+
+const parseLongName = (val) => {
+    if(val.length > 20){
+        return val.substr(0, 20) + '...'
+    }
+    return val
+}
+
+export default {
+    parseDate,
+    parseCEP,
+    parseCNPJ,
+    parseCPF,
+    parseDiscountMax,
+    parseNumLogr,
+    parseLongName
+}
