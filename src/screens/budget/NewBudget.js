@@ -1,3 +1,4 @@
+  
 import React, { useState, useEffect } from 'react'
 import {
     View,
@@ -26,7 +27,6 @@ import portInfo from '../../utils/portInfo'
 import axios from 'axios'
 
 let ToastRef = null
-let customerSeachModalRef = null
 
 const pickerItens = [
     {label: 'Vai Levar', value: 'VaiLevar'},
@@ -52,6 +52,9 @@ const CustomerinitialState = {
     COMPLEMENTOLOGRADOURO: ''
 }
 
+let refBugetItens = []
+let newItemkey = 0
+
 export default props => {
     const [pickerItem, setPickerItem] = useState('VaiLevar')
     const [customer, setCustomer] = useState({
@@ -67,26 +70,12 @@ export default props => {
     const [showItemSearchModal, setshowItemSearchModal] = useState(false)
     const [itemSearchResult, setItemSearchResult] = useState([])
 
-    const [rerenderTest, setRerenderTest] = useState(false)
-
-
-    const deleteBudgetItem = (index) => {
-        console.log(index)
-        newBudgetItens = [ ...bugetItens ]
-        newBudgetItens.splice(index, 1)
-        setBugetItens(newBudgetItens)
-    }
-
     const addBudgetItem = (index) => {
-        if(bugetItens.length){
-            key = bugetItens[bugetItens.length - 1].key + 1
-        }
-        else{
-            key = 1
-        }
-        newBudgetItens = [ ...bugetItens ]
-        newBudgetItens.push({ ...itemSearchResult[index], key})
-        setBugetItens(newBudgetItens)
+        newItemkey += 1
+        newBudgetItens = [ ...refBugetItens ]
+        newBudgetItens.push({ ...itemSearchResult[index], key: newItemkey})
+        refBugetItens = newBudgetItens
+        setBugetItens(refBugetItens)
         setshowItemSearchModal(false)
         setProductIndex(null)
     }
@@ -96,25 +85,34 @@ export default props => {
         setBugetItens(bugetItens)
     }
 
+    const deleteBudgetItem = (key) => {
+        index = refBugetItens.findIndex((item) => item.key === key)
+        newBudgetItens = [ ...refBugetItens ]
+        newBudgetItens.splice(index, 1)
+        refBugetItens = newBudgetItens
+        console.log(refBugetItens)
+        setBugetItens(refBugetItens)
+    }
+
+    const onChangeData = (newItem, key) => {
+        index = refBugetItens.findIndex((item) => item.key === key)
+        newBudgetItens = [ ...refBugetItens ]
+        newBudgetItens[index] = {...newBudgetItens[index], ...newItem}
+        refBugetItens = newBudgetItens
+        setBugetItens(refBugetItens)
+    }
+
     const renderBudgetProduct = ({ item, index }) => {
-        const isOpen = index === productIndex ? true : false
-
-        const onChangeData = (newItem) => {
-            newBudgetItens = [...bugetItens]
-            newBudgetItens[index] = {...newBudgetItens[index], ...newItem}
-            setBugetItens(newBudgetItens)
-        }
-
+        const isOpen = item.key === productIndex ? true : false
         return (
-            <BudgetProduct {...item}
+            <BudgetProduct data={item}
                             onChangeData={onChangeData}
                             isOpen={isOpen}
+                            deleteBudgetItem={deleteBudgetItem}
                             index={index}
-                            onPress={() => setProductIndex(index)}
-                            onDelete={deleteBudgetItem}
+                            setOpen={(key) => setProductIndex(key)}
                             closeItem={closeAllItens}/>
         )
-        
     }
 
     useEffect(() => {
@@ -141,7 +139,6 @@ export default props => {
                 errorMessage = error.response.data.message + ''
                 errorError = error.response.data.error + ''
             } else if (error.request) {
-                console.log(error.request)
                 errorMessage = 'Erro'
                 errorError = error.request['_response'] + ''
             } else {
@@ -155,7 +152,6 @@ export default props => {
                 type: 'error',
                 position: 'bottom'
             })
-            console.log(error)
             setItemSearchResult([])
         }
     }
@@ -181,14 +177,15 @@ export default props => {
     }
 
     const throw10Percent = () => {
-        newBudgetItens = [...bugetItens]
+        newBudgetItens = [...refBugetItens]
         calculatedBudgetItens = newBudgetItens.map((item, index) => {
             newItem = budgetListCalculation.recalculateBudgetList({ ...item, ALIQDESCONTOITEM: '10.00'}, 'discountAliquo')
             return {...newBudgetItens[index], ...newItem}
         })
         setProductIndex(null)
-        setBugetItens([]) 
-        setBugetItens(calculatedBudgetItens)
+        refBugetItens = calculatedBudgetItens
+        setBugetItens([])
+        setBugetItens(refBugetItens)
     }
 
     return (
@@ -261,13 +258,14 @@ export default props => {
                 <FlatList data={bugetItens}
                         keyExtractor={(item, index) => item.key + ''}
                         renderItem={renderBudgetProduct}
-                        initialNumToRender={5}
-                        maxToRenderPerBatch={10}
                         removeClippedSubviews={false}/>
             </View>
 
             <View style={styles.totalContainer}>
-                <TouchableOpacity style={styles.trashContainer}>
+                <TouchableOpacity style={styles.trashContainer}
+                onPress={() => {
+                    console.log(bugetItens)
+                    }}>
                     <Icon name='trash-alt' color='white' size={commonStyle.iconSizes.bigger}/>
                 </TouchableOpacity>
                 <View>

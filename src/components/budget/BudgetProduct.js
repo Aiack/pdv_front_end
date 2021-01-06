@@ -9,20 +9,18 @@ import commonStyles from '../../commonStyle'
 import budgetListCalculation from '../../utils/budgetListCalculation'
 import parsers from '../../utils/parsers'
 
-export default props => {
-    const [itemPrice, setItemPrice] = useState(props.VALORUNITARIO)
-    const [totalPrice, setTotalPrice] = useState(props.VALORTOTAL)
-    const [quantity, setQuantity] = useState(props.QUANTIDADE)
-    const [discountValue, setDiscountValue] = useState(props.VALORDESCONTOITEM)
-    const [discountAliquo, setDiscountAliquo] = useState(props.ALIQDESCONTOITEM)
-    const [acrescValue, setAcrescValue] = useState(props.VALORACRESCIMOITEM)
-    const [acrescAliquo, setAcrescAliquo] = useState(props.ALIQACRESCIMOITEM)
-
-    console.log("props: " + props.VALORUNITARIO + ', itemPrice: ' + itemPrice)
+const BudgetProduct = (props) => {
+    const [itemPrice, setItemPrice] = useState(props.data.VALORUNITARIO)
+    const [totalPrice, setTotalPrice] = useState(props.data.VALORTOTAL)
+    const [quantity, setQuantity] = useState(props.data.QUANTIDADE)
+    const [discountValue, setDiscountValue] = useState(props.data.VALORDESCONTOITEM)
+    const [discountAliquo, setDiscountAliquo] = useState(props.data.ALIQDESCONTOITEM)
+    const [acrescValue, setAcrescValue] = useState(props.data.VALORACRESCIMOITEM)
+    const [acrescAliquo, setAcrescAliquo] = useState(props.data.ALIQACRESCIMOITEM)
 
     const updateList = (changeBy, value=null) => {
         updatedItem = {
-            PRECOTABELA: props.PRECOTABELA,
+            PRECOTABELA: props.data.PRECOTABELA,
             VALORUNITARIO: itemPrice,
             VALORTOTAL: totalPrice,
             QUANTIDADE: value && changeBy === 'quantity' ? value : quantity,
@@ -30,8 +28,7 @@ export default props => {
             ALIQDESCONTOITEM: value && changeBy === 'discountAliquo' ? value : discountAliquo,
             VALORACRESCIMOITEM: acrescValue,
             ALIQACRESCIMOITEM: value && changeBy === 'acrescAliquo' ? value : acrescAliquo,
-            DESCMAXIMO: props.DESCMAXIMO,
-            updateCounter: props.updateCounter
+            DESCMAXIMO: props.data.DESCMAXIMO,
         }
 
         calculatedItem = budgetListCalculation.recalculateBudgetList(updatedItem, changeBy)
@@ -42,7 +39,7 @@ export default props => {
         setDiscountAliquo(calculatedItem.ALIQDESCONTOITEM)
         setAcrescValue(calculatedItem.VALORACRESCIMOITEM)
         setAcrescAliquo(calculatedItem.ALIQACRESCIMOITEM)
-        props.onChangeData(calculatedItem)
+        props.onChangeData(calculatedItem, props.data.key)
     }
 
     const isOpen = () => {
@@ -207,7 +204,7 @@ export default props => {
     const renderLeftContent = () => {
         return (
             <TouchableOpacity style={styles.leftContent}
-                                onPress={() => props.onDelete(props.index)}>
+                                onPress={() => props.deleteBudgetItem(props.data.key)}>
                 <Icon name='trash-alt' color='white' size={commonStyles.iconSizes.bigger}/>
             </TouchableOpacity>
         )
@@ -217,15 +214,15 @@ export default props => {
         <Swipeable renderLeftActions={renderLeftContent}>
             <TouchableOpacity style={styles.mainContainer}
                             disabled={props.isOpen}
-                            onPress={props.onPress}>
+                            onPress={() => props.setOpen(props.data.key)}>
                 <View style={{flexDirection:'row', height: commonStyles.heighs.BudgetProduct.name}}>
                     <TouchableOpacity style={{flex:6}}
                                         onPress={() => props.closeItem()}
                                         disabled={!props.isOpen}>
                         <Text style={styles.cod}>{
-                        props.CODPROD + ' - R$ ' + props.PRECOTABELA + ', desc max: ' + parsers.parseDiscountMax(props.DESCMAXIMO) + ' %'
+                        props.data.CODPROD + ' - R$ ' + props.data.PRECOTABELA + ', desc max: ' + parsers.parseDiscountMax(props.data.DESCMAXIMO) + ' %'
                         }</Text>
-                        <Text style={styles.name} numberOfLines={2}>{props.NOMEPROD}</Text>
+                        <Text style={styles.name} numberOfLines={2}>{props.data.NOMEPROD}</Text>
                     </TouchableOpacity>
                     <View style={[styles.itemPriceContainer]}>
                         <View style={{flexDirection:'row', alignItems: 'center'}}>
@@ -244,7 +241,7 @@ export default props => {
                                 }}
                                 editable={props.isOpen}
                             />
-                            <Text style={styles.descriptionText}>{' ' + props.UNIDADE}</Text>
+                            <Text style={styles.descriptionText}>{' ' + props.data.UNIDADE}</Text>
                         </View>
                             <View style={{ justifyContent: 'space-evenly'}}>
                                 <View style={{flexDirection:'row', alignItems:'center', height:commonStyles.heighs.BudgetProduct.price}}>
@@ -272,19 +269,29 @@ export default props => {
                         alignItems: 'center',
                         paddingBottom:commonStyles.spacers.padding.vertical}}>
                         <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.error}]}>{
-                        'R$ ' + acrescValue + ' - R$ ' + ((parseFloat(acrescValue) / parseFloat(quantity)).toFixed(2) + ' p/ ' + props.UNIDADE)
+                        'R$ ' + acrescValue + ' - R$ ' + ((parseFloat(acrescValue) / parseFloat(quantity)).toFixed(2) + ' p/ ' + props.data.UNIDADE)
                         }</Text>
                         <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.espera}]}>{'X ' + quantity}</Text>
                         <Text style={[styles.descriptionText, {color:commonStyles.colors.alertColors.faturado}]}>{
-                        'R$ ' + discountValue + ' - R$ ' + ((parseFloat(discountValue) / parseFloat(quantity)).toFixed(2) + ' p/ ' + props.UNIDADE)
+                        'R$ ' + discountValue + ' - R$ ' + ((parseFloat(discountValue) / parseFloat(quantity)).toFixed(2) + ' p/ ' + props.data.UNIDADE)
                         }</Text>
                     </View>
                 )}
                 {isOpen()}
-            </TouchableOpacity>
+                </TouchableOpacity>
         </Swipeable>
     )
 }
+
+const areEqual = (prevProps, nextProps) => {
+    const dataIsEqual = JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+    const isOpenIsEqual = prevProps.isOpen === nextProps.isOpen
+    const isKeyEqual = prevProps.key === nextProps.key
+    const isOnDelete = prevProps.isOnDelete === nextProps.isOnDelete
+    return dataIsEqual && isOpenIsEqual && isKeyEqual && isOnDelete
+}
+
+export default React.memo(BudgetProduct, areEqual)
 
 const styles = StyleSheet.create({
     mainContainer:{
