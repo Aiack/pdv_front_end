@@ -1,6 +1,6 @@
 # Repositorio PDV React Native
     
-##Change log
+## Change log
 ### 0.5.1
     -Alterado problema em que o desconto maximo muda após primeiro recalculo do produto no orçamento
 
