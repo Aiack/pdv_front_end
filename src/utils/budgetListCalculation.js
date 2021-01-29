@@ -76,8 +76,9 @@ const recalculateBudgetList = (list, changeBy) => {
             if(!QUANTIDADE){
                 QUANTIDADE = 1
             }
-            VALORACRESCIMOITEM = (VALORACRESCIMOITEM / QUANTIDADE) * QUANTIDADE
+            VALORACRESCIMOITEM = PRECOTABELA * (ALIQACRESCIMOITEM / 100) * QUANTIDADE
             VALORDESCONTOITEM = (VALORDESCONTOITEM / QUANTIDADE) * QUANTIDADE
+            VALORDESCONTOITEM = PRECOTABELA * (ALIQDESCONTOITEM / 100) * QUANTIDADE
             VALORTOTAL = VALORUNITARIO * QUANTIDADE
             break
 
@@ -149,4 +150,9 @@ const recalculateBudgetList = (list, changeBy) => {
     })
 }
 
-export default { recalculateBudgetList }
+const roundValues = (list, remove) => {
+    console.log(remove)
+    console.log(list)
+}
+
+export default { recalculateBudgetList, roundValues }

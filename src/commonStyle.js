@@ -19,6 +19,8 @@ const normalize = (size) => {
 
 export default {
     fontFamily: 'OpenSans-Regular',
+    fontFamilyExtraBold: 'OpenSans-ExtraBold',
+    fontFamilyExtraBoldItalic: 'OpenSans-ExtraBoldItalic',
     colors: {
         primary: 'white',
         secondary: '#fc8621',
@@ -32,7 +34,7 @@ export default {
             enviado: '#99cc33',
             espera: 'gray',
             error: '#ED553B',
-            alert: '#fdb827'
+            alert: '#6930c3'
         }
     },
     fontSize:{
@@ -71,7 +73,8 @@ export default {
         NewBudget:{
             customContainer: normalize(50),
             totalContainer: normalize(80),
-            buttons: normalize(100)
+            buttons: normalize(100),
+            totalPriceButton: normalize(50)
         },
         BudgetProduct:{
             main: normalize(190),
@@ -84,7 +87,10 @@ export default {
             height: normalize(50),
             width: normalize(100)
         },
-        sphere: normalize(15)
+        sphere: normalize(15),
+        home:{
+            noticeWindow: normalize(300)
+        }
     },
     borderRadius:{
         main: normalize(10),
@@ -94,5 +100,10 @@ export default {
         main: normalize(25),
         bigger: normalize(30),
         giant: normalize(100)
-    }
+    },
+    waveProperty:[
+            {A: normalize(20), T: normalize(300), fill: '#62c2ff'},
+            {A: normalize(30), T: normalize(250), fill: '#0087dc'},
+            {A: normalize(40), T: normalize(230), fill: '#1aa7ff'},
+    ]
 }
