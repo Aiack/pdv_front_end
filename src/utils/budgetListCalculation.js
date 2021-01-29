@@ -135,7 +135,7 @@ const recalculateBudgetList = (list, changeBy) => {
     ALIQDESCONTOITEM = ALIQDESCONTOITEM.toFixed(2)
     VALORACRESCIMOITEM = VALORACRESCIMOITEM.toFixed(2)
     ALIQACRESCIMOITEM = ALIQACRESCIMOITEM.toFixed(2)
-    DESCMAXIMO = DESCMAXIMO.toFixed(0)
+    DESCMAXIMO = DESCMAXIMO
 
     return (list = {
         PRECOTABELA,
