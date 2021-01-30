@@ -125,8 +125,6 @@ export default props => {
                 return
             }
             catch (error) {
-                setErrorMessage(error + ' ' + portInfo.ipAdress)
-                console.log(error)
                 if (error.response) {
                     if(error.request.status === 404){
                         setWindowState('newUser')
@@ -233,8 +231,17 @@ export default props => {
 
     return (
         <View style={styles.mainContainer}>
-            <Text>{errorMessage}</Text>
-            <View style={styles.container}/>
+            <View style={styles.container}>
+                {windowState === 'loading' ? (
+                    <View>
+                        <Text style={styles.title}>Powered by:</Text>
+                        <Text style={styles.title}>Jhelison Uchoa</Text>
+                        <Text style={styles.title}>Versão 0.5.2</Text>
+                        <Text style={styles.title}>Code Push v 0.5.2</Text>
+                    </View>
+                ) : null}
+
+            </View>
             <View style={styles.container}>
                 <StatusBar backgroundColor={commonStyles.colors.secondary}/>
                 <Image source={logo} style={styles.logo}/>
@@ -267,6 +274,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontFamily: commonStyles.fontFamily,
         fontWeight: 'bold',
+        textAlign: 'center'
     },
     errorText:{
         fontSize: 30,
