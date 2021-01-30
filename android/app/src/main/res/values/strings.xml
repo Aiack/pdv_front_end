@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">O Tijolão - PDV</string>
+    <string moduleConfig="true" name="CodePushDeploymentKey">_vFpHh6Lglcvsj_vD1grJH_uPtMB577K6b3I4</string>
 </resources>
