@@ -1,6 +1,9 @@
 # Repositorio PDV React Native
     
 ## Change log
+### 0.6.0
+- Adicionado o code push, agora atualizações pela nuvem!
+
 ### 0.5.1
 - Alterado problema em que o desconto maximo muda após primeiro recalculo do produto no orçamento
 
