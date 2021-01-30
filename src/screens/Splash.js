@@ -17,7 +17,8 @@ import CustomPicker from '../components/customPicker'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import Axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { getUniqueId, getSystemName, getBrand, getDeviceId } from 'react-native-device-info';
+import { getUniqueId, getSystemName, getBrand } from 'react-native-device-info';
+import codePush from 'react-native-code-push'
 
 export default props => {
     const [windowState, setWindowState] = useState('loading')
@@ -25,7 +26,7 @@ export default props => {
     const [pickerItem, setPickerItem] = useState(null)
     const [pickerList, setPickerList] = useState(null)
 
-    const [errorMessage, setErrorMessage] = useState('')
+    const [codePushVersion, setCodePushVersion] = useState('')
 
     const getIpAdress = async () => {
         const jsonValue = await AsyncStorage.getItem('portInfo')
@@ -151,6 +152,9 @@ export default props => {
 
     useEffect(() => {
         getUser()
+        codePush.getUpdateMetadata().then((metadata) => {
+            setCodePushVersion(metadata.appVersion)
+        })
     }, [])
 
     const setLayout = () => {
@@ -234,10 +238,9 @@ export default props => {
             <View style={styles.container}>
                 {windowState === 'loading' ? (
                     <View>
-                        <Text style={styles.title}>Powered by:</Text>
-                        <Text style={styles.title}>Jhelison Uchoa</Text>
-                        <Text style={styles.title}>Versão 0.5.2</Text>
-                        <Text style={styles.title}>Code Push v 0.5.2</Text>
+                        <Text style={[styles.title, {fontSize: 20}]}>Powered by:</Text>
+                        <Text style={[styles.title, {fontSize: 40}]}>Jhelison Uchoa</Text>
+                        <Text style={[styles.title, {fontSize: 20}]}>Versão 0.5.2</Text>
                     </View>
                 ) : null}
 
@@ -250,6 +253,7 @@ export default props => {
             <View style={styles.container}>
                 {setLayout()}
             </View>
+            <Text style={[styles.title, {fontSize: 10}]}>{'Code Push v ' + codePushVersion}</Text>
 
         </View>
     )
