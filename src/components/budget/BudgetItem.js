@@ -62,7 +62,10 @@ const BudgetItem = props => {
                 <View style={{flexDirection:'column', flex: 8}}>
                     <Text style={styles.codigo}>
                         <Text>{'Cod: '}</Text>
-                        <Text style={{fontWeight:'bold', color:'black'}}>{parseInt(props.data.NUMEROORCAMENTO) + ' '}</Text>
+                        <Text style={{fontWeight:'bold',
+                            color:'black',
+                            fontSize: commonStyles.fontSize.listItem.secondaryText * 1.3}}>
+                                {parseInt(props.data.NUMEROORCAMENTO) + ' '}</Text>
                         <Text>{parsers.parseDate(props.data.DATA) + ' ' + props.data.HORA}</Text>
                     </Text>
                     <Text style={styles.cliente}>{

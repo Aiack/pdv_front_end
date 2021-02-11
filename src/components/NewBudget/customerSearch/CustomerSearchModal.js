@@ -7,7 +7,8 @@ import {
     TextInput,
     FlatList,
     TouchableWithoutFeedback,
-    Text
+    Text,
+    ActivityIndicator
 } from 'react-native'
 
 import Icon from 'react-native-vector-icons/FontAwesome5'
@@ -26,6 +27,7 @@ let textInputRef = null
 export default props => {
     const [customerSearchInput, setCustomerSearchInput] = useState('')
     const [customerList, setCustomerList] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
 
     const renderCustomerItem = ({item, index}) => {
         return (
@@ -47,9 +49,11 @@ export default props => {
                 url: 'customers/',
                 params: {query: customerSearchInput},
             }, ToastRef)
+            setIsLoading(false)
             setCustomerList(res)
         }
         catch{
+            setIsLoading(false)
             setCustomerList([])
         }
     }
@@ -116,8 +120,13 @@ export default props => {
                                     ref={(ref) => {
                                         textInputRef = ref
                                         }}/>
-                        <TouchableOpacity onPress={customerListFromServer}>
-                            <Icon name='search' color={commonStyle.colors.secondary} size={commonStyle.iconSizes.main}/>
+                        <TouchableOpacity disabled={isLoading} onPress={() => {
+                                setIsLoading(true)
+                                customerListFromServer()
+                                }}>
+                            {isLoading ?
+                                <ActivityIndicator size="large" color={commonStyle.colors.secondary}/> :
+                                <Icon name='search' color={commonStyle.colors.secondary} size={commonStyle.iconSizes.main}/>}
                         </TouchableOpacity>
                     </View>
                     {getMessageOrList()}

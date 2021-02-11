@@ -5,7 +5,8 @@ import {
     StyleSheet,
     TouchableOpacity,
     ScrollView,
-    Text
+    Text,
+    ActivityIndicator
 } from 'react-native'
 
 import Icon from 'react-native-vector-icons/FontAwesome5'
@@ -23,6 +24,7 @@ let ToastRef = null
 
 export default props => {
     const [inputErrors, setInputErrors] = useState([])
+    const [isLoading, setIsLoading] = useState(false)
 
     const onCustomerFlagPress = (flag) => {
         if(flag === 'Y'){
@@ -34,7 +36,7 @@ export default props => {
     }
 
     const setCustomerInfoFunc = (data, varName) => {
-        newCustomerInfo = { ...props.data.data }
+        let newCustomerInfo = { ...props.data.data }
         newCustomerInfo[varName] = data
         props.setCustomerCreateData({
             fromDatabase: props.data.fromDatabase,
@@ -144,10 +146,11 @@ export default props => {
 
     const onCustomerCreateUpdate = async () => {
         if(validateCustomerCreate()){
+            setIsLoading(false)
             return
         }
 
-        newCustomer = { ...props.data.data }
+        let newCustomer = { ...props.data.data }
         for(key in newCustomer){
             newCustomer[key] = newCustomer[key].trim()
             
@@ -165,9 +168,11 @@ export default props => {
                 url: 'customer/',
                 data: {data: JSON.stringify(newCustomer)},
             }, ToastRef)
+            setIsLoading(false)
             props.changeToCustomerAfterChange(res.message, res.data)
         }
         catch (error) {
+            setIsLoading(false)
             if(error.response){
                 if(error.response.data){
                     if(error.response.data.data){
@@ -186,7 +191,7 @@ export default props => {
                     url: 'https://viacep.com.br/ws/' + cep + '/json'
                 })
                 if(!res.data.error){
-                    newCustomerInfo = { ...props.data.data }
+                    let newCustomerInfo = { ...props.data.data }
                     props.setCustomerCreateData({
                         fromDatabase: props.data.fromDatabase,
                         data: {...newCustomerInfo,
@@ -225,7 +230,7 @@ export default props => {
                 })
                 const data = res.data
                 if(data.status === "OK"){
-                    newCustomerInfo = { ...props.data.data }
+                    let newCustomerInfo = { ...props.data.data }
                     props.setCustomerCreateData({
                         fromDatabase: props.data.fromDatabase,
                         data: {...newCustomerInfo,
@@ -309,13 +314,18 @@ export default props => {
                     
                 </ScrollView>
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity style={[styles.button, {backgroundColor: commonStyle.colors.alertColors.error}]}
+                    <TouchableOpacity disabled={isLoading} style={[styles.button, {backgroundColor: commonStyle.colors.alertColors.error}]}
                                         onPress={props.onCancel}>
                         <Icon name='user-slash' size={commonStyle.iconSizes.bigger} color='white'/>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, {backgroundColor: commonStyle.colors.alertColors.faturado}]}
-                                        onPress={() => onCustomerCreateUpdate()}>
-                        <Icon name='check' size={commonStyle.iconSizes.bigger} color='white'/>
+                    <TouchableOpacity disabled={isLoading} style={[styles.button, {backgroundColor: commonStyle.colors.alertColors.faturado}]}
+                                        onPress={() => {
+                                            setIsLoading(true)
+                                            onCustomerCreateUpdate()
+                                            }}>
+                        {isLoading ?
+                            <ActivityIndicator size="large" color={'white'}/> : 
+                            <Icon name='check' size={commonStyle.iconSizes.bigger} color='white'/>}
                     </TouchableOpacity>
                 </View>
             </View>

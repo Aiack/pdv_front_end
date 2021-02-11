@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     FlatList,
     Keyboard,
+    ActivityIndicator,
 } from 'react-native'
 
 import CustomPicker from '../components/customPicker'
@@ -82,6 +83,7 @@ export default props => {
         OBSNOTAFISCAL: '',
         VALORFRETE: '0.00'
     })
+    const [isLoading, setIsLoading] = useState(false)
 
     const addBudgetItem = (index) => {
         newItemkey += 1
@@ -149,10 +151,12 @@ export default props => {
                 url: 'products/',
                 params: {query: itemSearchInput},
             }, ToastRef)
+            setIsLoading(false)
             setItemSearchResult(res)
             setshowItemSearchModal(true)
         }
         catch{
+            setIsLoading(false)
             setItemSearchResult([])
         }
     }
@@ -350,8 +354,13 @@ export default props => {
                                 onSubmitEditing={itensListFromServer}
                                 maxLength={50}
                                 selectTextOnFocus={true}/>
-                    <TouchableOpacity onPress={itensListFromServer}>
-                        <Icon name='search' color={commonStyle.colors.secondary} size={commonStyle.iconSizes.main}/>
+                    <TouchableOpacity disabled={isLoading} onPress={() => {
+                            setIsLoading(true)
+                            itensListFromServer()
+                            }}>
+                        {isLoading ?
+                            <ActivityIndicator size="large" color={commonStyle.colors.secondary}/> :
+                            <Icon name='search' color={commonStyle.colors.secondary} size={commonStyle.iconSizes.main}/>}
                     </TouchableOpacity>
                 </View>
                 <FlatList data={bugetItens}

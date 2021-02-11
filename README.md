@@ -1,6 +1,9 @@
 # Repositorio PDV React Native
     
 ## Change log
+### 0.7.0
+- Adicionado maior feedback ao usuario em momentos de carregamento ou conexão com o servidor
+
 ### 0.6.0
 - Adicionado o code push, agora atualizações pela nuvem!
 
