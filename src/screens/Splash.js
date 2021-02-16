@@ -240,7 +240,7 @@ export default props => {
                     <View>
                         <Text style={[styles.title, {fontSize: 20}]}>Powered by:</Text>
                         <Text style={[styles.title, {fontSize: 40}]}>Jhelison Uchoa</Text>
-                        <Text style={[styles.title, {fontSize: 20}]}>Versão 0.6.0</Text>
+                        <Text style={[styles.title, {fontSize: 20}]}>Versão 0.7.1</Text>
                     </View>
                 ) : null}
 

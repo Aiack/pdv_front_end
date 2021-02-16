@@ -1,6 +1,10 @@
 # Repositorio PDV React Native
     
 ## Change log
+
+### 0.7.1
+- Nivel da água em home fixado para valores extremos
+
 ### 0.7.0
 - Adicionado maior feedback ao usuario em momentos de carregamento ou conexão com o servidor
 

@@ -89,6 +89,17 @@ export default props => {
     }, [])
 
     const changeObjectiveData = () => {
+        const parsePercent = (perc) => {
+            if(perc < 0){
+                return 0
+            }
+            if(perc > 1.2){
+                return 1.2
+            }
+            return perc
+        }
+
+
         if(todayButton){
             if(parseFloat(information.today.objective) === 0){
                 percent = 0
@@ -98,8 +109,7 @@ export default props => {
             }
             setObjectiveData({ ...information.today })
             if(waterWaveRef){
-
-                waterWaveRef.setWaterHeight(waterWaveHeigth * percent)
+                waterWaveRef.setWaterHeight(parseInt(waterWaveHeigth * parsePercent(percent)))
             }
         }
         else{
@@ -111,7 +121,7 @@ export default props => {
             }
             setObjectiveData({ ...information.month })
             if(waterWaveRef){
-                waterWaveRef.setWaterHeight(waterWaveHeigth * percent)
+                waterWaveRef.setWaterHeight(parseInt(waterWaveHeigth * parsePercent(percent)))
             }
         }
     }
