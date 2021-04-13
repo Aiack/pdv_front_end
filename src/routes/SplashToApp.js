@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import codePush from 'react-native-code-push'
+// import codePush from 'react-native-code-push'
 
 import Splash from '../screens/Splash'
 import MainTabNavigation from './MainTabNavigation'
@@ -33,8 +33,9 @@ const SplashToApp = props => {
     )
 }
 
-const codePushOptions = {
-    checkFrequency: codePush.CheckFrequency.ON_APP_START
-}
+// const codePushOptions = {
+//     checkFrequency: codePush.CheckFrequency.ON_APP_START
+// }
 
-export default codePush(codePushOptions)(SplashToApp)
+// export default codePush(codePushOptions)(SplashToApp)
+export default SplashToApp
