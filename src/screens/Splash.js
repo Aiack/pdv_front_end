@@ -33,36 +33,38 @@ export default props => {
     const getIpAdress = async () => {
         const jsonValue = await AsyncStorage.getItem('portInfo')
         if(jsonValue != null){
+            console.log(jsonValue)
             return JSON.parse(jsonValue)
         }
         else{
-            ipAdress = '10.0.0.103:5000'
+            console.log('null')
+            ipAdress = '192.168.5.131:5000'
             timeOut = '5000'
             const jsonValue = JSON.stringify({ipAdress, timeOut})
             await AsyncStorage.setItem('portInfo', jsonValue)
             return {
-                ipAdress: '10.0.0.103:5000',
+                ipAdress: '192.168.5.131:5000',
                 timeOut: '5000'
             }
         }
     }
 
-    const getTopItems = async () => {
-        const portInfo = await getIpAdress()
-        try {
-            const res = await Axios({
-                method: 'GET',
-                url: ('http://' + portInfo.ipAdress + '/topitems'),
-                timeout: parseFloat(portInfo.timeOut),
-            })
-            data = res.data
-            const jsonValue = JSON.stringify({data})
-            await AsyncStorage.setItem('topItems', jsonValue)
-        }
-        catch (error) {
-            console.log(error)
-        }   
-    }
+    // const getTopItems = async () => {
+    //     const portInfo = await getIpAdress()
+    //     try {
+    //         const res = await Axios({
+    //             method: 'GET',
+    //             url: ('http://' + portInfo.ipAdress + '/topitems'),
+    //             timeout: parseFloat(portInfo.timeOut),
+    //         })
+    //         data = res.data
+    //         const jsonValue = JSON.stringify({data})
+    //         await AsyncStorage.setItem('topItems', jsonValue)
+    //     }
+    //     catch (error) {
+    //         console.log(error)
+    //     }   
+    // }
 
     const signin = async () => {
         if(profileName.trim()){
@@ -111,6 +113,7 @@ export default props => {
         }   
     }
 
+    //First function to run, it try to get the user from local db
     const getUser = async () => {
         setWindowState('loading')
         const portInfo = await getIpAdress()
@@ -128,6 +131,7 @@ export default props => {
                 return
             }
             catch (error) {
+                console.log(error)
                 if (error.response) {
                     if(error.request.status === 404){
                         setWindowState('newUser')
@@ -152,14 +156,15 @@ export default props => {
         }
     }
 
-    // useEffect(() => {
-    //     getUser()
-    //     codePush.getUpdateMetadata().then((metadata) => {
-    //         setCodePushVersion(metadata.appVersion)
-    //     })
-    // }, [])
+    useEffect(() => {
+        getUser()
+        // codePush.getUpdateMetadata().then((metadata) => {
+        //     setCodePushVersion(metadata.appVersion)
+        // })
+    }, [])
 
     const setLayout = () => {
+        console.log('running')
         if(windowState === 'connectionError'){
             return (
                 <View style={styles.container}>

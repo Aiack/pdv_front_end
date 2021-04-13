@@ -17,7 +17,7 @@ const SplashToApp = props => {
     }
 
     const setIpAdress = async () => {
-        ipAdress = '10.0.0.103:5000'
+        ipAdress = '192.168.5.131:5000'
         timeOut = '5000'
         const jsonValue = JSON.stringify({ipAdress, timeOut})
         await AsyncStorage.setItem('portInfo', jsonValue)
