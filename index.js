@@ -3,8 +3,8 @@
  */
 
 import {AppRegistry} from 'react-native';
-import SplashToApp from './src/routes/SplashToApp'
+import OnStart from './src/routes/OnStart'
 
 import {name as appName} from './app.json';
 
-AppRegistry.registerComponent(appName, () => SplashToApp);
+AppRegistry.registerComponent(appName, () => OnStart);

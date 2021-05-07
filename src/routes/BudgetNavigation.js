@@ -9,8 +9,8 @@ const Stack = createStackNavigator()
 export default props => {
     return (
         <Stack.Navigator screenOptions={{headerShown:false}}>
-            <Stack.Screen name='budget' component={Budget} />
-            <Stack.Screen name='newBudget' component={NewBudget} />
+            <Stack.Screen name='budget' component={Budget}/>
+            <Stack.Screen name='newBudget' component={NewBudget}/>
         </Stack.Navigator>
     )
 }
