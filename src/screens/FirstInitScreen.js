@@ -10,6 +10,8 @@ import {
 import commonStyle from "../commonStyle"
 
 import Icon from "react-native-vector-icons/Feather"
+import QRCodeScanner from "react-native-qrcode-scanner"
+import { RNCamera } from "react-native-camera"
 
 const FirstInitScreen = (props) => {
     const [screenStep, setScreenStep] = useState(0)
@@ -55,8 +57,8 @@ const FirstInitScreen = (props) => {
             )
         } else if (step === 1) {
             return (
-                <View>
-                    <Text>Stepp 1</Text>
+                <View style={styles.centerContent}>
+                    <QRCodeScanner></QRCodeScanner>
                 </View>
             )
         } else if (step === 2) {
@@ -237,6 +239,7 @@ const styles = StyleSheet.create({
     centerContent: {
         justifyContent: "center",
         alignItems: "center",
+        flex:1
     },
     title: {
         textAlign: "center",
