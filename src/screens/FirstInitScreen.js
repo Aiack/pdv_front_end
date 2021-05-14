@@ -1,21 +1,51 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
     View,
     Text,
     StyleSheet,
     StatusBar,
     TouchableOpacity,
+    TextInput,
+    ActivityIndicator,
 } from "react-native"
 
 import commonStyle from "../commonStyle"
 
-import Icon from "react-native-vector-icons/Feather"
-import QRCodeScanner from "react-native-qrcode-scanner"
-import { RNCamera } from "react-native-camera"
+import IconFeather from "react-native-vector-icons/Feather"
+import IconMaterial from "react-native-vector-icons/MaterialCommunityIcons"
+import TextInputMask from "react-native-text-input-mask"
+
+import CameraModal from "../components/codeReaderModa"
 
 const FirstInitScreen = (props) => {
     const [screenStep, setScreenStep] = useState(0)
     const [haverError, setHaveError] = useState(false)
+    const [isCameraModal, setIsCameraModal] = useState(false)
+    const [cameraData, setCameraData] = useState(null)
+
+    const [isQRValid, setIsQRValid] = useState(null)
+
+    const [isLoading, setIsLoading] = useState(true)
+
+    const [formHostname, setFormHostname] = useState("")
+    const [formIPAddr, setFormIPAddr] = useState("")
+
+    useEffect(() => {
+        if (cameraData) {
+            try {
+                jsonData = JSON.parse(cameraData)
+                if (jsonData.hostname && jsonData.IPAddr) {
+                    setIsQRValid(true)
+                    setFormHostname(jsonData.hostname)
+                    setFormIPAddr(jsonData.IPAddr)
+                } else {
+                    setIsQRValid(false)
+                }
+            } catch (error) {
+                setIsQRValid(false)
+            }
+        }
+    }, [cameraData])
 
     const getScreen = (step) => {
         if (step === 0) {
@@ -44,7 +74,7 @@ const FirstInitScreen = (props) => {
                             Vamos te deixar pronto para realizar vendas logo
                             após estes passos
                         </Text>
-                        <Icon
+                        <IconFeather
                             name="thumbs-up"
                             size={60}
                             color={
@@ -57,8 +87,83 @@ const FirstInitScreen = (props) => {
             )
         } else if (step === 1) {
             return (
-                <View style={styles.centerContent}>
-                    <QRCodeScanner></QRCodeScanner>
+                <View style={[styles.centerContent]}>
+                    <Text style={styles.title}>
+                        Para configuração rápida do servidor, você pode:
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.centerContent}
+                        onPress={() => setIsCameraModal(true)}
+                    >
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    fontSize: commonStyle.fontSize.modalText,
+                                },
+                            ]}
+                        >
+                            Ler QRCode
+                        </Text>
+                        <IconMaterial
+                            name="qrcode"
+                            size={150}
+                            color={
+                                isQRValid == null
+                                    ? commonStyle.firstInitScreen.statusSphere
+                                          .activeBorder
+                                    : isQRValid
+                                    ? commonStyle.firstInitScreen.bottomButtons
+                                          .done
+                                    : commonStyle.firstInitScreen.bottomButtons
+                                          .error
+                            }
+                        />
+                        <Text
+                            style={[
+                                styles.title,
+                                {
+                                    fontSize: commonStyle.fontSize.modalText,
+                                },
+                            ]}
+                        >
+                            {isQRValid == null
+                                ? "Pressione para abrir a câmera"
+                                : isQRValid
+                                ? "QR lido com sucesso! 👍"
+                                : "QR invalido 😞. Pressione para tentar novamente"}
+                        </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.title}>
+                        Ou inserir os dados manualmente:
+                    </Text>
+                    <View style={styles.centerContent}>
+                        <View style={styles.formContainer}>
+                            <Text style={styles.containerPlaceholder}>
+                                {"IPAddr"}
+                            </Text>
+                            <TextInputMask
+                                style={styles.input}
+                                value={formIPAddr}
+                                onChangeText={(val) => setFormIPAddr(val)}
+                                autoCapitalize="characters"
+                                mask={"[999].[999].[999].[999]:[9999]"}
+                                keyboardType="phone-pad"
+                                placeholder="000.000.0000.000:0000"
+                            />
+                        </View>
+                        <View style={styles.formContainer}>
+                            <Text style={styles.containerPlaceholder}>
+                                {"Hostname"}
+                            </Text>
+                            <TextInput
+                                style={styles.input}
+                                value={formHostname}
+                                onChangeText={(val) => setFormHostname(val)}
+                                placeholder="Hostname"
+                            />
+                        </View>
+                    </View>
                 </View>
             )
         } else if (step === 2) {
@@ -78,6 +183,11 @@ const FirstInitScreen = (props) => {
 
     return (
         <View style={styles.mainContainer}>
+            <CameraModal
+                isVisible={isCameraModal}
+                onClose={() => setIsCameraModal(false)}
+                onRead={(data) => setCameraData(data)}
+            />
             <StatusBar backgroundColor="white" barStyle="dark-content" />
             <View style={styles.statusBar}>
                 {/* Sphere container index 1 */}
@@ -111,7 +221,7 @@ const FirstInitScreen = (props) => {
                         ]}
                     >
                         {haverError && screenStep === 1 ? (
-                            <Icon
+                            <IconFeather
                                 name="x"
                                 size={30}
                                 color={
@@ -120,7 +230,7 @@ const FirstInitScreen = (props) => {
                                 }
                             />
                         ) : screenStep > 1 ? (
-                            <Icon
+                            <IconFeather
                                 name="check"
                                 size={30}
                                 color={
@@ -131,7 +241,12 @@ const FirstInitScreen = (props) => {
                         ) : null}
                     </View>
                 </View>
-                <View style={[styles.divider, screenStep === 2 ? styles.dividerDone : null]} />
+                <View
+                    style={[
+                        styles.divider,
+                        screenStep === 2 ? styles.dividerDone : null,
+                    ]}
+                />
                 {/* Sphere container index 2 */}
                 <View style={styles.sphereContainer}>
                     <Text
@@ -163,7 +278,7 @@ const FirstInitScreen = (props) => {
                         ]}
                     >
                         {haverError && screenStep === 2 ? (
-                            <Icon
+                            <IconFeather
                                 name="x"
                                 size={30}
                                 color={
@@ -172,7 +287,7 @@ const FirstInitScreen = (props) => {
                                 }
                             />
                         ) : screenStep > 2 ? (
-                            <Icon
+                            <IconFeather
                                 name="check"
                                 size={30}
                                 color={
@@ -186,21 +301,6 @@ const FirstInitScreen = (props) => {
             </View>
             {getScreen(screenStep)}
             <View style={styles.bottomButonsContainer}>
-                {/* Back button */}
-                <TouchableOpacity
-                    style={[styles.bottomButtons, screenStep != 0 ? styles.bottomButtonsActive : styles.bottomButtonsInactive]}
-                    onPress={() => setScreenStep((oldState) => oldState - 1)}
-                    disabled={screenStep === 0}
-                >
-                    <Icon
-                        name="chevron-left"
-                        size={50}
-                        color={
-                            commonStyle.firstInitScreen.bottomButtons
-                                .inactiveBorder
-                        }
-                    />
-                </TouchableOpacity>
                 {/* Forward button */}
                 <TouchableOpacity
                     style={[
@@ -211,15 +311,22 @@ const FirstInitScreen = (props) => {
                         haverError ? styles.bottomButtonsError : null,
                     ]}
                     onPress={() => setScreenStep((oldState) => oldState + 1)}
-                    disabled={haverError}
+                    disabled={haverError || isLoading}
                 >
-                    {haverError ? (
-                        <Icon name="x" size={50} color={"white"} />
+                    {isLoading ? (
+                        <ActivityIndicator size="large" color="#00ff00"/>
+                    ) : haverError ? (
+                        <IconFeather name="x" size={50} color={"white"} />
                     ) : screenStep != 2 ? (
-                        <Icon name="chevron-right" size={50} color={"white"} />
+                        <IconFeather
+                            name="chevron-right"
+                            size={50}
+                            color={"white"}
+                        />
                     ) : (
-                        <Icon name="check" size={50} color={"white"} />
+                        <IconFeather name="check" size={50} color={"white"} />
                     )}
+                    {}
                 </TouchableOpacity>
             </View>
         </View>
@@ -239,7 +346,7 @@ const styles = StyleSheet.create({
     centerContent: {
         justifyContent: "center",
         alignItems: "center",
-        flex:1
+        flex: 1,
     },
     title: {
         textAlign: "center",
@@ -305,17 +412,14 @@ const styles = StyleSheet.create({
             commonStyle.firstInitScreen.divider.height / 2,
         marginHorizontal: 5,
     },
-    dividerDone : {
+    dividerDone: {
         backgroundColor: commonStyle.firstInitScreen.bottomButtons.done,
     },
     bottomButonsContainer: {
-        position: "absolute",
         width: "100%",
         bottom: 0,
         paddingBottom: 10,
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignItems: "center",
+        left: "70%",
     },
     bottomButtons: {
         width: commonStyle.firstInitScreen.bottomButtons.size,
@@ -337,6 +441,39 @@ const styles = StyleSheet.create({
     },
     bottomButtonsError: {
         backgroundColor: commonStyle.firstInitScreen.bottomButtons.error,
+    },
+    cameraContainer: {
+        width: 200,
+        height: 200,
+        alignSelf: "center",
+    },
+    serverScreenText: {
+        fontFamily: commonStyle.fontFamily,
+        fontSize: commonStyle.fontSize.bodyText,
+    },
+    formContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: "white",
+        borderRadius: commonStyle.borderRadius.main,
+        elevation: 1,
+        paddingHorizontal: commonStyle.spacers.padding.horizontal,
+        marginLeft: commonStyle.spacers.margin.horizontal,
+        marginRight: commonStyle.spacers.margin.horizontal,
+        marginVertical: commonStyle.spacers.margin.vertical,
+        height: commonStyle.heighs.NewBudget.customContainer,
+    },
+    containerPlaceholder: {
+        fontSize: commonStyle.fontSize.formText,
+        fontFamily: commonStyle.fontFamily,
+    },
+    input: {
+        flex: 1,
+        fontSize: commonStyle.fontSize.formText,
+        fontFamily: commonStyle.fontFamily,
+        textAlign: "right",
+        fontWeight: "bold",
     },
 })
 
