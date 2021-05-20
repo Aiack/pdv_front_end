@@ -38,6 +38,22 @@ const FirstInitScreen = (props) => {
     const [selectedSeller, setSelectedSeller] = useState(null)
     const [profileName, setProfileName] = useState('')
 
+    //Check if the server and the user is setted, then redirects to the correct screen
+    useEffect(async () => {
+        const ip = await AsyncStorage.getItem("ipAdress")
+        if(ip){
+            try {
+                const res = await Axios.get(ip)
+                await getSellersList()
+                setScreenStep(2)
+            }
+            catch (error) {
+                console.log(error)
+            }
+        }
+    }, [])
+
+    //Verify the integrity of the camera data
     useEffect(() => {
         if (cameraData) {
             try {
@@ -58,11 +74,9 @@ const FirstInitScreen = (props) => {
     //Removes the error when forms are filled
     useEffect(() => {
         setHaveError(false)
-    }, [formIPAddr])
-    useEffect(() => {
-        setHaveError(false)
-    }, [profileName])
+    }, [formIPAddr, profileName])
 
+    //Returns the correct screen based on the screen level
     const getScreen = (step) => {
         if (step === 0) {
             return (
@@ -226,12 +240,14 @@ const FirstInitScreen = (props) => {
         }
     }
 
-    const advanceScreenStep = () => {
+    const advanceScreenStep = async () => {
+        
         if (screenStep == 1) {
             testConnection()
         }
         else if (screenStep == 2) {
-            signin()
+            await signin()
+
         }
         else {
             setScreenStep((oldState) => oldState + 1)
@@ -258,7 +274,7 @@ const FirstInitScreen = (props) => {
     }
 
     const getSellersList = async () => {
-        const ip = "http://" + formIPAddr + "/"
+        const ip = await AsyncStorage.getItem("ipAdress")
         try {
             const res = await Axios({
                 method: "GET",
@@ -277,7 +293,7 @@ const FirstInitScreen = (props) => {
     }
 
     const signin = async () => {
-        const ip = "http://" + formIPAddr + "/"
+        const ip = await AsyncStorage.getItem("ipAdress")
         if(profileName.trim()){
             try {
                 const res = await Axios({
@@ -293,7 +309,6 @@ const FirstInitScreen = (props) => {
                     }}
                 })
                 setHaveError(false)
-                // getUser()
             }
             catch (error) {
                 console.log(error)
