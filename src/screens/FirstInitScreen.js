@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     TextInput,
     ActivityIndicator,
+    NativeModules
 } from "react-native"
 
 import commonStyle from "../commonStyle"
@@ -19,7 +20,7 @@ import TextInputMask from "react-native-text-input-mask"
 import CameraModal from "../components/codeReaderModa"
 import Axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getUniqueId, getSystemName, getBrand } from 'react-native-device-info'
+import { getUniqueId, getSystemName, getBrand } from "react-native-device-info"
 
 const FirstInitScreen = (props) => {
     const [screenStep, setScreenStep] = useState(0)
@@ -36,20 +37,21 @@ const FirstInitScreen = (props) => {
 
     const [sellersList, setSellersList] = useState(null)
     const [selectedSeller, setSelectedSeller] = useState(null)
-    const [profileName, setProfileName] = useState('')
+    const [profileName, setProfileName] = useState("")
 
     //Check if the server and the user is setted, then redirects to the correct screen
     useEffect(async () => {
         const ip = await AsyncStorage.getItem("ipAdress")
-        if(ip){
+        if (ip) {
             try {
-                const res = await Axios.get(ip)
-                await getSellersList()
-                setScreenStep(2)
-            }
-            catch (error) {
-                console.log(error)
-            }
+                await Axios.get(ip)
+                if (await getUser()) {
+                    setScreenStep(3)
+                } else {
+                    await getSellersList()
+                    setScreenStep(2)
+                }
+            } catch (error) {}
         }
     }, [])
 
@@ -75,6 +77,12 @@ const FirstInitScreen = (props) => {
     useEffect(() => {
         setHaveError(false)
     }, [formIPAddr, profileName])
+
+    useEffect(() => {
+        if(screenStep === 3){
+            resetApp()
+        }
+    }, [screenStep])
 
     //Returns the correct screen based on the screen level
     const getScreen = (step) => {
@@ -234,24 +242,48 @@ const FirstInitScreen = (props) => {
         } else {
             return (
                 <View style={styles.centerContent}>
-                    <Text style={styles.title}>ELSE!</Text>
+                    <Text
+                        style={[
+                            styles.title,
+                            {
+                                fontSize: 24,
+                                color:
+                                    commonStyle.firstInitScreen.statusSphere
+                                        .activeBorder,
+                            },
+                        ]}
+                    >
+                        Tudo configurado com sucesso!
+                    </Text>
+                    <Text style={styles.title}>
+                        Aguarde que você será transferido em alguns segundos...
+                    </Text>
+                    <ActivityIndicator size="large" color="#00ff00" />
                 </View>
             )
         }
     }
 
     const advanceScreenStep = async () => {
-        
         if (screenStep == 1) {
             testConnection()
-        }
-        else if (screenStep == 2) {
-            await signin()
-
-        }
-        else {
+            if (await getUser()) {
+                setScreenStep(3)
+            } else {
+                setScreenStep(2)
+            }
+        } else if (screenStep == 2) {
+            signin()
+        } else {
             setScreenStep((oldState) => oldState + 1)
         }
+    }
+
+    const resetApp = async () => {
+        await AsyncStorage.setItem("firstInit", "false")
+        setTimeout(() => {
+            NativeModules.DevSettings.reload()
+        }, 3000)
     }
 
     //Test the connection and saves the ipAdress
@@ -265,7 +297,6 @@ const FirstInitScreen = (props) => {
                 await AsyncStorage.setItem("ipAdress", ip)
                 await getSellersList()
                 setIsLoading(false)
-                setScreenStep(2)
             } catch (error) {
                 setIsLoading(false)
                 setHaveError(true)
@@ -294,28 +325,53 @@ const FirstInitScreen = (props) => {
 
     const signin = async () => {
         const ip = await AsyncStorage.getItem("ipAdress")
-        if(profileName.trim()){
+        if (profileName.trim()) {
             try {
                 const res = await Axios({
-                    method: 'POST',
-                    url: (ip + '/user/'),
-                    data: {content: {
-                        id: getUniqueId(),
-                        profile_name: profileName,
-                        platform: getSystemName(),
-                        phone_model: getBrand(),
-                        cod_vend: selectedSeller,
-                        nome_vend: sellersList.find((item) => item.value === selectedSeller).label
-                    }}
+                    method: "POST",
+                    url: ip + "/user/",
+                    data: {
+                        content: {
+                            id: getUniqueId(),
+                            profile_name: profileName,
+                            platform: getSystemName(),
+                            phone_model: getBrand(),
+                            cod_vend: selectedSeller,
+                            nome_vend: sellersList.find(
+                                (item) => item.value === selectedSeller
+                            ).label,
+                        },
+                    },
                 })
                 setHaveError(false)
-            }
-            catch (error) {
+                setScreenStep(3)
+            } catch (error) {
                 console.log(error)
-            }   
-        }
-        else{
+            }
+        } else {
             setHaveError(true)
+        }
+    }
+
+    const getUser = async () => {
+        const ip = await AsyncStorage.getItem("ipAdress")
+        try {
+            const res = await Axios({
+                method: "GET",
+                url: ip + "/user/",
+                params: { id: getUniqueId() },
+            })
+            return true
+        } catch (error) {
+            if (error.response) {
+                if (error.request.status === 401) {
+                    return true
+                }
+                if (error.request.status === 404) {
+                    return false
+                }
+            }
+            return false
         }
     }
 
@@ -382,7 +438,7 @@ const FirstInitScreen = (props) => {
                 <View
                     style={[
                         styles.divider,
-                        screenStep === 2 ? styles.dividerDone : null,
+                        screenStep > 1 ? styles.dividerDone : null,
                     ]}
                 />
                 {/* Sphere container index 2 */}
@@ -438,35 +494,41 @@ const FirstInitScreen = (props) => {
                 </View>
             </View>
             {getScreen(screenStep)}
-            <View style={styles.bottomButonsContainer}>
-                {/* Forward button */}
-                <TouchableOpacity
-                    style={[
-                        styles.bottomButtons,
-                        screenStep != 2
-                            ? styles.bottomButtonsActive
-                            : styles.bottomButtonsDone,
-                        haverError ? styles.bottomButtonsError : null,
-                    ]}
-                    onPress={advanceScreenStep}
-                    disabled={haverError || isLoading}
-                >
-                    {isLoading ? (
-                        <ActivityIndicator size="large" color="#00ff00" />
-                    ) : haverError ? (
-                        <IconFeather name="x" size={50} color={"white"} />
-                    ) : screenStep != 2 ? (
-                        <IconFeather
-                            name="chevron-right"
-                            size={50}
-                            color={"white"}
-                        />
-                    ) : (
-                        <IconFeather name="check" size={50} color={"white"} />
-                    )}
-                    {}
-                </TouchableOpacity>
-            </View>
+            {screenStep != 3 ? (
+                <View style={styles.bottomButonsContainer}>
+                    {/* Forward button */}
+                    <TouchableOpacity
+                        style={[
+                            styles.bottomButtons,
+                            screenStep != 2
+                                ? styles.bottomButtonsActive
+                                : styles.bottomButtonsDone,
+                            haverError ? styles.bottomButtonsError : null,
+                        ]}
+                        onPress={advanceScreenStep}
+                        disabled={haverError || isLoading}
+                    >
+                        {isLoading ? (
+                            <ActivityIndicator size="large" color="#00ff00" />
+                        ) : haverError ? (
+                            <IconFeather name="x" size={50} color={"white"} />
+                        ) : screenStep != 2 ? (
+                            <IconFeather
+                                name="chevron-right"
+                                size={50}
+                                color={"white"}
+                            />
+                        ) : (
+                            <IconFeather
+                                name="check"
+                                size={50}
+                                color={"white"}
+                            />
+                        )}
+                        {}
+                    </TouchableOpacity>
+                </View>
+            ) : null}
         </View>
     )
 }

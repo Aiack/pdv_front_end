@@ -18,15 +18,15 @@ const SplashToApp = props => {
     }
 
     const isFirstInit = async () => {
-        const firstInit = await AsyncStorage.getItem('portInfo')
+        const firstInit = await AsyncStorage.getItem('firstInit')
         if(firstInit != null){
-            return firstInit
+            return false
         }
         return true
     }
 
     const getScreen = () => {
-        if(isFirstInit()){
+        if(!isFirstInit()){
             return <FirstInitScreen/>
         }
         if(!isApp){
