@@ -282,7 +282,7 @@ const FirstInitScreen = (props) => {
     const resetApp = async () => {
         await AsyncStorage.setItem("firstInit", "false")
         setTimeout(() => {
-            NativeModules.DevSettings.reload()
+            props.changeToScreen("splash")
         }, 3000)
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -9,30 +9,30 @@ import FirstInitScreen from '../screens/FirstInitScreen'
 import MainTabNavigation from './MainTabNavigation'
 
 const SplashToApp = props => {
-    const [isApp, setIsApp] = useState(false)
+    const [screenName, setScreenName] = useState(null)
 
-    const changeToApp = () => {
-        setTimeout(() => {
-            setIsApp(true)
-        }, 1000)
+    const changeToScreen = (screen) => {
+        setScreenName(screen)
     }
 
-    const isFirstInit = async () => {
-        const firstInit = await AsyncStorage.getItem('firstInit')
-        if(firstInit != null){
-            return false
+    useEffect(async () => {
+        if(await AsyncStorage.getItem('firstInit') != null){
+            changeToScreen("splash")
         }
-        return true
-    }
+        else{
+            changeToScreen("firstInit")
+        }
+    }, [])
 
     const getScreen = () => {
-        if(!isFirstInit()){
-            return <FirstInitScreen/>
+        if(screenName === "firstInit"){
+            return <FirstInitScreen changeToScreen={changeToScreen}/>
         }
-        if(!isApp){
-            return <Splash changeToApp={changeToApp}/>
+        else if(screenName === "splash"){
+            return <Splash changeToScreen={changeToScreen}/>
         }
-        return <MainTabNavigation/>
+        else if(screenName === "app")
+            return <MainTabNavigation/>
     }
 
     return (
