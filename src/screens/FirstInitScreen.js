@@ -10,12 +10,16 @@ import {
 } from "react-native"
 
 import commonStyle from "../commonStyle"
+import CustomPicker from "../components/customPicker"
 
 import IconFeather from "react-native-vector-icons/Feather"
 import IconMaterial from "react-native-vector-icons/MaterialCommunityIcons"
-import TextInputMask from "react-native-text-input-mask"
 
+import TextInputMask from "react-native-text-input-mask"
 import CameraModal from "../components/codeReaderModa"
+import Axios from "axios"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import { getUniqueId, getSystemName, getBrand } from 'react-native-device-info'
 
 const FirstInitScreen = (props) => {
     const [screenStep, setScreenStep] = useState(0)
@@ -25,10 +29,14 @@ const FirstInitScreen = (props) => {
 
     const [isQRValid, setIsQRValid] = useState(null)
 
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
 
     const [formHostname, setFormHostname] = useState("")
     const [formIPAddr, setFormIPAddr] = useState("")
+
+    const [sellersList, setSellersList] = useState(null)
+    const [selectedSeller, setSelectedSeller] = useState(null)
+    const [profileName, setProfileName] = useState('')
 
     useEffect(() => {
         if (cameraData) {
@@ -46,6 +54,14 @@ const FirstInitScreen = (props) => {
             }
         }
     }, [cameraData])
+
+    //Removes the error when forms are filled
+    useEffect(() => {
+        setHaveError(false)
+    }, [formIPAddr])
+    useEffect(() => {
+        setHaveError(false)
+    }, [profileName])
 
     const getScreen = (step) => {
         if (step === 0) {
@@ -168,16 +184,123 @@ const FirstInitScreen = (props) => {
             )
         } else if (step === 2) {
             return (
-                <View>
-                    <Text>Stepp 2</Text>
+                <View style={styles.centerContent}>
+                    <Text style={styles.title}>
+                        Agora vamos realizar a configuração do perfil do
+                        vendedor:
+                    </Text>
+                    <View style={styles.centerContent}>
+                        <View style={styles.formContainer}>
+                            <Text style={styles.containerPlaceholder}>
+                                Nome do perfil:
+                            </Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Nome"
+                                value={profileName}
+                                onChangeText={(val) => setProfileName(val)}
+                                maxLength={80}
+                            />
+                        </View>
+                        <View style={styles.formContainer}>
+                            <Text style={styles.containerPlaceholder}>
+                                Vendedor:
+                            </Text>
+                            <CustomPicker
+                                items={sellersList}
+                                defaultValue={selectedSeller}
+                                onChangeItem={(item) => {
+                                    setSelectedSeller(item)
+                                }}
+                            />
+                        </View>
+                    </View>
                 </View>
             )
         } else {
             return (
-                <View>
-                    <Text>Stepp else</Text>
+                <View style={styles.centerContent}>
+                    <Text style={styles.title}>ELSE!</Text>
                 </View>
             )
+        }
+    }
+
+    const advanceScreenStep = () => {
+        if (screenStep == 1) {
+            testConnection()
+        }
+        else if (screenStep == 2) {
+            signin()
+        }
+        else {
+            setScreenStep((oldState) => oldState + 1)
+        }
+    }
+
+    //Test the connection and saves the ipAdress
+    const testConnection = async () => {
+        if (formIPAddr) {
+            const ip = "http://" + formIPAddr + "/"
+            console.log(ip)
+            setIsLoading(true)
+            try {
+                const res = await Axios.get(ip)
+                await AsyncStorage.setItem("ipAdress", ip)
+                await getSellersList()
+                setIsLoading(false)
+                setScreenStep(2)
+            } catch (error) {
+                setIsLoading(false)
+                setHaveError(true)
+            }
+        }
+    }
+
+    const getSellersList = async () => {
+        const ip = "http://" + formIPAddr + "/"
+        try {
+            const res = await Axios({
+                method: "GET",
+                url: ip + "/sellers",
+            })
+            list = res.data.map((item) => {
+                return {
+                    label: item.NOMEVENDED,
+                    value: item.CODVENDED,
+                }
+            })
+            setSellersList(list)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const signin = async () => {
+        const ip = "http://" + formIPAddr + "/"
+        if(profileName.trim()){
+            try {
+                const res = await Axios({
+                    method: 'POST',
+                    url: (ip + '/user/'),
+                    data: {content: {
+                        id: getUniqueId(),
+                        profile_name: profileName,
+                        platform: getSystemName(),
+                        phone_model: getBrand(),
+                        cod_vend: selectedSeller,
+                        nome_vend: sellersList.find((item) => item.value === selectedSeller).label
+                    }}
+                })
+                setHaveError(false)
+                // getUser()
+            }
+            catch (error) {
+                console.log(error)
+            }   
+        }
+        else{
+            setHaveError(true)
         }
     }
 
@@ -310,11 +433,11 @@ const FirstInitScreen = (props) => {
                             : styles.bottomButtonsDone,
                         haverError ? styles.bottomButtonsError : null,
                     ]}
-                    onPress={() => setScreenStep((oldState) => oldState + 1)}
+                    onPress={advanceScreenStep}
                     disabled={haverError || isLoading}
                 >
                     {isLoading ? (
-                        <ActivityIndicator size="large" color="#00ff00"/>
+                        <ActivityIndicator size="large" color="#00ff00" />
                     ) : haverError ? (
                         <IconFeather name="x" size={50} color={"white"} />
                     ) : screenStep != 2 ? (
