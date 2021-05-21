@@ -85,6 +85,22 @@ const getSellersList = async () => {
     }
 }
 
+const getUserBearer = async () => {
+    const ip = await getIpAdress()
+
+    try {
+        const res = await axios({
+            method: "GET",
+            url: ip + "/user/",
+            params: {id: id}
+        })
+        return res.data
+    }
+    catch (error) {
+        return null
+    }
+}
+
 export {
     haveConnection,
     createUser,
