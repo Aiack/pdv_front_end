@@ -85,7 +85,7 @@ const getSellersList = async () => {
     }
 }
 
-const getUserBearer = async () => {
+const setUserBearer = async () => {
     const ip = await getIpAdress()
 
     try {
@@ -94,7 +94,10 @@ const getUserBearer = async () => {
             url: ip + "/user/",
             params: {id: id}
         })
-        return res.data
+        Axios.defaults.headers.common[
+            "Authorization"
+        ] = `Bearer ${res.data}`
+        return true
     }
     catch (error) {
         return null
