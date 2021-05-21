@@ -12,13 +12,14 @@ import {
 
 import logo from "../../assets/imgs/logowhite.png"
 import commonStyles from "../commonStyle"
+import {  } from "../api/api"
 
 import IconFontAwesome from "react-native-vector-icons/FontAwesome"
 import IconFeather from "react-native-vector-icons/Feather"
 
 import Axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getUniqueId, getSystemName, getBrand } from "react-native-device-info"
+import { getUniqueId } from "react-native-device-info"
 // import codePush from 'react-native-code-push'
 
 import packageJson from "../../package.json"
