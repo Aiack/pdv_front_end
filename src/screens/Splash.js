@@ -7,28 +7,22 @@ import {
     Text,
     ActivityIndicator,
     TouchableOpacity,
-    TextInput,
 } from "react-native"
 
 import logo from "../../assets/imgs/logowhite.png"
 import commonStyles from "../commonStyle"
-import {  } from "../api/api"
+import { getUser, haveConnection } from "../api/api"
 
 import IconFontAwesome from "react-native-vector-icons/FontAwesome"
 import IconFeather from "react-native-vector-icons/Feather"
 
-import Axios from "axios"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getUniqueId } from "react-native-device-info"
 // import codePush from 'react-native-code-push'
-
-import packageJson from "../../package.json"
 
 export default (props) => {
     const [windowState, setWindowState] = useState("loading")
 
     useEffect(() => {
-        getUser()
+        makeConnection()
     }, [])
 
     const changeToApp = () => {
@@ -37,43 +31,32 @@ export default (props) => {
         }, 3000)
     }
 
-    const getUser = async () => {
-        setWindowState("loading")
-        const ip = await AsyncStorage.getItem("ipAdress")
+    const changeToFirstInit = () => {
+        props.changeToScreen("firstInit")
+    }
 
-        while (true) {
-            try {
-                const res = await Axios({
-                    method: "GET",
-                    url: ip + "/user/",
-                    params: { id: getUniqueId() },
-                })
-                Axios.defaults.headers.common[
-                    "Authorization"
-                ] = `Bearer ${res.data}`
-                changeToApp()
-                return
-            } catch (error) {
-                console.log(error)
-                if (error.response) {
-                    if (error.request.status === 401) {
-                        setWindowState("acessDenied")
-                        return
-                    }
-                } else if (error.request) {
-                    if (!error.request["_timedOut"]) {
-                        setWindowState("connectionError")
-                        return
-                    }
-                } else {
-                    console.log("else")
-                }
+    const makeConnection = async () => {
+        if(await haveConnection()){
+            const user = await getUser()
+            if(!user){
+                changeToFirstInit()
             }
+            else if(user.flag_have_acess === null){
+                setWindowState("newAcess")
+            }
+            else if(user.flag_have_acess === false){
+                setWindowState("acessDenied")
+            }
+            else{
+                changeToApp()
+            }
+        }
+        else{
+            setWindowState("connectionError")
         }
     }
 
     const setLayout = () => {
-        console.log("running")
         if (windowState === "connectionError") {
             return (
                 <View style={styles.containerSpaceAround}>
@@ -90,7 +73,7 @@ export default (props) => {
                         <TouchableOpacity
                             style={styles.retryButton}
                             onPress={() => {
-                                getUser()
+                                makeConnection()
                             }}
                         >
                             <IconFeather
@@ -116,7 +99,8 @@ export default (props) => {
                     </View>
                 </View>
             )
-        } else if (windowState === "acessDenied") {
+        } 
+        else if (windowState === "newAcess") {
             return (
                 <View style={styles.containerSpaceAround}>
                     <View style={styles.container}>
@@ -137,7 +121,55 @@ export default (props) => {
                         <TouchableOpacity
                             style={styles.retryButton}
                             onPress={() => {
-                                getUser()
+                                makeConnection()
+                            }}
+                        >
+                            <IconFeather
+                                name="rotate-ccw"
+                                size={commonStyles.iconSizes.main}
+                            />
+                            <Text
+                                style={[
+                                    styles.errorText,
+                                    {
+                                        color: "black",
+                                        paddingLeft:
+                                            commonStyles.spacers.padding
+                                                .horizontal,
+                                        fontSize: commonStyles.fontSize.button,
+                                        textAlign: "center",
+                                    },
+                                ]}
+                            >
+                                Tentar novamente?
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )
+        }
+        else if (windowState === "acessDenied") {
+            return (
+                <View style={styles.containerSpaceAround}>
+                    <View style={styles.container}>
+                        <IconFeather
+                            name="frown"
+                            color={commonStyles.colors.alertColors.error}
+                            size={commonStyles.iconSizes.bigger * 1.5}
+                        />
+                        <Text style={styles.errorText}>
+                            Seu acesso ao sistema foi bloquado!
+                        </Text>
+                        <Text style={styles.errorText}>
+                            Contate o administrador
+                        </Text>
+                    </View>
+
+                    <View style={styles.container}>
+                        <TouchableOpacity
+                            style={styles.retryButton}
+                            onPress={() => {
+                                connectToUser()
                             }}
                         >
                             <IconFeather
