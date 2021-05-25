@@ -319,28 +319,6 @@ const FirstInitScreen = (props) => {
         }, 3000)
     }
 
-    const getUser = async () => {
-        const ip = await AsyncStorage.getItem("ipAdress")
-        try {
-            const res = await Axios({
-                method: "GET",
-                url: ip + "/user/",
-                params: { id: getUniqueId() },
-            })
-            return true
-        } catch (error) {
-            if (error.response) {
-                if (error.request.status === 401) {
-                    return true
-                }
-                if (error.request.status === 404) {
-                    return false
-                }
-            }
-            return false
-        }
-    }
-
     return (
         <View style={styles.mainContainer}>
             <CameraModal

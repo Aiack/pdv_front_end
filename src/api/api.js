@@ -1,5 +1,6 @@
 import axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { getUniqueId } from "react-native-device-info"
 
 const getIpAdress = async () => {
     const ip = await AsyncStorage.getItem("ipAdress")
@@ -68,7 +69,7 @@ const getUser = async () => {
         const res = await axios({
             method: "GET",
             url: ip + "/user/",
-            params: {id: id}
+            params: {id: getUniqueId()}
         })
 
         if(res.data['flag_have_acess']){
