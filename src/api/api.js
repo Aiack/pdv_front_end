@@ -9,7 +9,6 @@ const getIpAdress = async () => {
 //General Functions
 const haveConnection = async () => {
     const ip = await getIpAdress()
-
     try {
         const res = await axios({
             method: "GET",
@@ -97,7 +96,7 @@ const getUser = async () => {
         Axios.defaults.headers.common[
             "Authorization"
         ] = `Bearer ${res.data['acessToken']}`
-        return true
+        return res.data
     }
     catch (error) {
         return null
