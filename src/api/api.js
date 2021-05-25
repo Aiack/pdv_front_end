@@ -1,4 +1,5 @@
 import axios from "axios"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 const getIpAdress = async () => {
     const ip = await AsyncStorage.getItem("ipAdress")
@@ -6,20 +7,19 @@ const getIpAdress = async () => {
 }
 
 //General Functions
-const haveConnection = async (ip) => {
-    if(ip){
-        try {
-            const res = await axios({
-                method: "GET",
-                url: ip
-            })
-            return true
-        }
-        catch (error) {
-            return false
-        }
+const haveConnection = async () => {
+    const ip = await getIpAdress()
+
+    try {
+        const res = await axios({
+            method: "GET",
+            url: ip
+        })
+        return true
     }
-    return false
+    catch (error) {
+        return false
+    }
 }
 
 //User endpoint
@@ -85,7 +85,7 @@ const getSellersList = async () => {
     }
 }
 
-const setUserBearer = async () => {
+const getUser = async () => {
     const ip = await getIpAdress()
 
     try {
@@ -96,7 +96,7 @@ const setUserBearer = async () => {
         })
         Axios.defaults.headers.common[
             "Authorization"
-        ] = `Bearer ${res.data}`
+        ] = `Bearer ${res.data['acessToken']}`
         return true
     }
     catch (error) {
@@ -108,5 +108,6 @@ export {
     haveConnection,
     createUser,
     userExists,
-    getSellersList
+    getSellersList,
+    getUser
 }

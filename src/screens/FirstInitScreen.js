@@ -12,6 +12,7 @@ import {
 
 import commonStyle from "../commonStyle"
 import CustomPicker from "../components/customPicker"
+import { haveConnection, userExists, createUser } from "../api/api"
 
 import IconFeather from "react-native-vector-icons/Feather"
 import IconMaterial from "react-native-vector-icons/MaterialCommunityIcons"
@@ -83,6 +84,10 @@ const FirstInitScreen = (props) => {
             resetApp()
         }
     }, [screenStep])
+
+    useEffect(() => {
+        AsyncStorage.setItem("ipAdress", "http://" + formIPAddr + "/")
+    }, [formIPAddr])
 
     //Returns the correct screen based on the screen level
     const getScreen = (step) => {
@@ -265,18 +270,40 @@ const FirstInitScreen = (props) => {
     }
 
     const advanceScreenStep = async () => {
-        if (screenStep == 1) {
-            testConnection()
-            if (await getUser()) {
-                setScreenStep(3)
-            } else {
+        if (screenStep == 1){
+            if(await haveConnection()){
                 setScreenStep(2)
             }
-        } else if (screenStep == 2) {
-            signin()
-        } else {
+            else{
+                setHaveError(true)
+            }
+        }
+        //This is only activated if the user not exists
+        else if (screenStep == 2){
+            const user = await createUser()
+            if(user != null){
+                setScreenStep(3)
+            }
+        }
+        else {
             setScreenStep((oldState) => oldState + 1)
         }
+        
+
+
+
+        // if (screenStep == 1) {
+        //     testConnection()
+        //     if (await getUser()) {
+        //         setScreenStep(3)
+        //     } else {
+        //         setScreenStep(2)
+        //     }
+        // } else if (screenStep == 2) {
+        //     signin()
+        // } else {
+        //     setScreenStep((oldState) => oldState + 1)
+        // }
     }
 
     const resetApp = async () => {
@@ -284,24 +311,6 @@ const FirstInitScreen = (props) => {
         setTimeout(() => {
             props.changeToScreen("splash")
         }, 3000)
-    }
-
-    //Test the connection and saves the ipAdress
-    const testConnection = async () => {
-        if (formIPAddr) {
-            const ip = "http://" + formIPAddr + "/"
-            console.log(ip)
-            setIsLoading(true)
-            try {
-                const res = await Axios.get(ip)
-                await AsyncStorage.setItem("ipAdress", ip)
-                await getSellersList()
-                setIsLoading(false)
-            } catch (error) {
-                setIsLoading(false)
-                setHaveError(true)
-            }
-        }
     }
 
     const getSellersList = async () => {
