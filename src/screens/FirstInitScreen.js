@@ -12,7 +12,7 @@ import {
 
 import commonStyle from "../commonStyle"
 import CustomPicker from "../components/customPicker"
-import { haveConnection, userExists, createUser } from "../api/api"
+import { haveConnection, getUser, createUser, getSellersList } from "../api/api"
 
 import IconFeather from "react-native-vector-icons/Feather"
 import IconMaterial from "react-native-vector-icons/MaterialCommunityIcons"
@@ -42,18 +42,15 @@ const FirstInitScreen = (props) => {
 
     //Check if the server and the user is setted, then redirects to the correct screen
     useEffect(async () => {
-        const ip = await AsyncStorage.getItem("ipAdress")
-        if (ip) {
-            try {
-                await Axios.get(ip)
-                if (await getUser()) {
-                    setScreenStep(3)
-                } else {
-                    await getSellersList()
-                    setScreenStep(2)
-                }
-            } catch (error) {}
-        }
+        if(await haveConnection()){
+            const user = await getUser()
+            if(user){
+                setScreenStep(3)
+            }
+            else{
+                setScreenStep(2)
+            }
+        } 
     }, [])
 
     //Verify the integrity of the camera data
@@ -79,14 +76,27 @@ const FirstInitScreen = (props) => {
         setHaveError(false)
     }, [formIPAddr, profileName])
 
-    useEffect(() => {
-        if(screenStep === 3){
+    useEffect(async () => {
+        if(screenStep === 2){
+            const selletListServer = await getSellersList()
+
+            list = selletListServer.map((item) => {
+                return {
+                    label: item.NOMEVENDED,
+                    value: item.CODVENDED,
+                }
+            })
+            setSellersList(list)
+        }
+        else if(screenStep === 3){
             resetApp()
         }
     }, [screenStep])
 
     useEffect(() => {
-        AsyncStorage.setItem("ipAdress", "http://" + formIPAddr + "/")
+        if(formIPAddr){
+            AsyncStorage.setItem("ipAdress", "http://" + formIPAddr + "/")
+        }
     }, [formIPAddr])
 
     //Returns the correct screen based on the screen level
@@ -272,7 +282,10 @@ const FirstInitScreen = (props) => {
     const advanceScreenStep = async () => {
         if (screenStep == 1){
             if(await haveConnection()){
-                setScreenStep(2)
+                const user = await getUser()
+                if(user){
+                    setScreenStep(3)
+                }
             }
             else{
                 setHaveError(true)
@@ -280,7 +293,16 @@ const FirstInitScreen = (props) => {
         }
         //This is only activated if the user not exists
         else if (screenStep == 2){
-            const user = await createUser()
+            const user = await createUser({
+                id: getUniqueId(),
+                profile_name: profileName,
+                platform: getSystemName(),
+                phone_model: getBrand(),
+                cod_vend: selectedSeller,
+                nome_vend: sellersList.find(
+                    (item) => item.value === selectedSeller
+                ).label,
+            })
             if(user != null){
                 setScreenStep(3)
             }
@@ -288,22 +310,6 @@ const FirstInitScreen = (props) => {
         else {
             setScreenStep((oldState) => oldState + 1)
         }
-        
-
-
-
-        // if (screenStep == 1) {
-        //     testConnection()
-        //     if (await getUser()) {
-        //         setScreenStep(3)
-        //     } else {
-        //         setScreenStep(2)
-        //     }
-        // } else if (screenStep == 2) {
-        //     signin()
-        // } else {
-        //     setScreenStep((oldState) => oldState + 1)
-        // }
     }
 
     const resetApp = async () => {
@@ -311,55 +317,6 @@ const FirstInitScreen = (props) => {
         setTimeout(() => {
             props.changeToScreen("splash")
         }, 3000)
-    }
-
-    const getSellersList = async () => {
-        const ip = await AsyncStorage.getItem("ipAdress")
-        try {
-            const res = await Axios({
-                method: "GET",
-                url: ip + "/sellers",
-            })
-            list = res.data.map((item) => {
-                return {
-                    label: item.NOMEVENDED,
-                    value: item.CODVENDED,
-                }
-            })
-            setSellersList(list)
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
-    const signin = async () => {
-        const ip = await AsyncStorage.getItem("ipAdress")
-        if (profileName.trim()) {
-            try {
-                const res = await Axios({
-                    method: "POST",
-                    url: ip + "/user/",
-                    data: {
-                        content: {
-                            id: getUniqueId(),
-                            profile_name: profileName,
-                            platform: getSystemName(),
-                            phone_model: getBrand(),
-                            cod_vend: selectedSeller,
-                            nome_vend: sellersList.find(
-                                (item) => item.value === selectedSeller
-                            ).label,
-                        },
-                    },
-                })
-                setHaveError(false)
-                setScreenStep(3)
-            } catch (error) {
-                console.log(error)
-            }
-        } else {
-            setHaveError(true)
-        }
     }
 
     const getUser = async () => {

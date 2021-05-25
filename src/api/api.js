@@ -41,36 +41,13 @@ const createUser = async (content) => {
                 return "User exists"
             }
         }
-        throw null
-    }
-}
-
-const userExists = async (id) => {
-    const ip = await getIpAdress()
-
-    try {
-        const res = await axios({
-            method: "GET",
-            url: ip + "/user/",
-            params: {id: id}
-        })
-        return true
-    } 
-    catch (error) {
-        if (error.response) {
-            if (error.request.status === 401) {
-                return true
-            }
-            if (error.request.status === 404) {
-                return false
-            }
-        }
         return null
     }
 }
 
 const getSellersList = async () => {
     const ip = await getIpAdress()
+    console.log(ip)
 
     try {
         const res = await axios({
@@ -93,9 +70,13 @@ const getUser = async () => {
             url: ip + "/user/",
             params: {id: id}
         })
-        Axios.defaults.headers.common[
-            "Authorization"
-        ] = `Bearer ${res.data['acessToken']}`
+
+        if(res.data['flag_have_acess']){
+            Axios.defaults.headers.common[
+                "Authorization"
+            ] = `Bearer ${res.data['acessToken']}`
+        }
+
         return res.data
     }
     catch (error) {
@@ -106,7 +87,6 @@ const getUser = async () => {
 export {
     haveConnection,
     createUser,
-    userExists,
     getSellersList,
     getUser
 }
