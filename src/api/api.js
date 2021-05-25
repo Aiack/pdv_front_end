@@ -72,15 +72,16 @@ const getUser = async () => {
             params: {id: getUniqueId()}
         })
 
-        if(res.data['flag_have_acess']){
-            Axios.defaults.headers.common[
+        if(res.data.flag_have_acess){
+            axios.defaults.headers.common[
                 "Authorization"
-            ] = `Bearer ${res.data['acessToken']}`
+            ] = `Bearer ${res.data.acessToken}`
         }
 
         return res.data
     }
     catch (error) {
+        console.log(error)
         return null
     }
 }

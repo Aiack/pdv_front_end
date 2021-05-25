@@ -38,6 +38,7 @@ export default (props) => {
     const makeConnection = async () => {
         if(await haveConnection()){
             const user = await getUser()
+
             if(!user){
                 changeToFirstInit()
             }
@@ -153,7 +154,7 @@ export default (props) => {
                 <View style={styles.containerSpaceAround}>
                     <View style={styles.container}>
                         <IconFeather
-                            name="frown"
+                            name="x"
                             color={commonStyles.colors.alertColors.error}
                             size={commonStyles.iconSizes.bigger * 1.5}
                         />
@@ -169,7 +170,7 @@ export default (props) => {
                         <TouchableOpacity
                             style={styles.retryButton}
                             onPress={() => {
-                                connectToUser()
+                                makeConnection()
                             }}
                         >
                             <IconFeather
