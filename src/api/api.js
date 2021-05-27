@@ -13,7 +13,8 @@ const haveConnection = async () => {
     try {
         const res = await axios({
             method: "GET",
-            url: ip
+            url: ip,
+            timeout: 2000
         })
         return true
     }

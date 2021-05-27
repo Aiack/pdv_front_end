@@ -36,6 +36,7 @@ export default (props) => {
     }
 
     const makeConnection = async () => {
+        setWindowState("loading")
         if(await haveConnection()){
             const user = await getUser()
 
