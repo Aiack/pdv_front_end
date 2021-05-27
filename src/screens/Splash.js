@@ -77,6 +77,9 @@ export default (props) => {
                             onPress={() => {
                                 makeConnection()
                             }}
+                            onLongPress={() => {
+                                changeToFirstInit()
+                            }}
                         >
                             <IconFeather
                                 name="rotate-ccw"
