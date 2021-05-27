@@ -13,6 +13,7 @@ import logo from "../../assets/imgs/logowhite.png"
 import commonStyles from "../commonStyle"
 import { getUser, haveConnection } from "../api/api"
 
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import IconFontAwesome from "react-native-vector-icons/FontAwesome"
 import IconFeather from "react-native-vector-icons/Feather"
 
@@ -31,7 +32,8 @@ export default (props) => {
         }, 3000)
     }
 
-    const changeToFirstInit = () => {
+    const changeToFirstInit = async () => {
+        await AsyncStorage.removeItem("firstInit")
         props.changeToScreen("firstInit")
     }
 
