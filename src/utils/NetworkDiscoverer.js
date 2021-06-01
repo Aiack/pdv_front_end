@@ -20,6 +20,7 @@ class NetworkDiscoverer {
     NoPortsSubscription = null
     ConnectionErrorSubscription = null
 
+
     constructor(timeout = 40, ports = []) {
         this.Timeout = timeout
         this.Ports = ports
