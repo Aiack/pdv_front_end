@@ -6,7 +6,7 @@ import CustomHeader from "../components/customHeader"
 
 import NetworkDiscoverer from "../utils/NetworkDiscoverer"
 
-const networkDiscoverer = new NetworkDiscoverer(40, [5000])
+const networkDiscoverer = new NetworkDiscoverer(50, [5151])
 
 export default (props) => {
     const [results, setResults] = useState([])
@@ -44,12 +44,15 @@ export default (props) => {
                 getLocalDevices()
                 }} />
             <Button title="cancel" onPress={() => cancelDiscovering()} />
+            {newDevice && 
+                <Text>New Device: {newDevice.ipAddress}:{newDevice.port}</Text>
+            }
             {results ? results.map((result, index) => {
                 return (
                     result && (
                         <View style={styles.item} key={index}>
                             <Text>
-                                New device has been found: {result.ipAddress}:
+                                Results found: {result.ipAddress}:
                                 {result.port}
                             </Text>
                         </View>

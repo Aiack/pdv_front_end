@@ -1,5 +1,6 @@
 import FindLocalDevices from "react-native-find-local-devices"
 import { DeviceEventEmitter } from "react-native"
+import axios from "axios"
 
 const NEW_DEVICE_FOUND = "NEW_DEVICE_FOUND"
 const CHECK = "CHECK"
@@ -10,7 +11,7 @@ const CONNECTION_ERROR = "CONNECTION_ERROR"
 
 class NetworkDiscoverer {
     Timeout = 40
-    Ports = []
+    Ports = [5151]
 
     NewDeviceFoundSubscription = null
     ResultsSubscription = null
@@ -33,7 +34,7 @@ class NetworkDiscoverer {
         setDefault
     ) => {
         this.NewDeviceFoundSubscription = DeviceEventEmitter.addListener(
-            NEW_DEVICE_FOUND,
+            NEW_DEVICE_FOUND, 
             (device) => {
                 if (device.ipAddress && device.port) {
                     console.log(device)

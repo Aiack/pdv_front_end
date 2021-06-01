@@ -19,7 +19,6 @@ import IconMaterial from "react-native-vector-icons/MaterialCommunityIcons"
 
 import TextInputMask from "react-native-text-input-mask"
 import CameraModal from "../components/codeReaderModa"
-import Axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getUniqueId, getSystemName, getBrand } from "react-native-device-info"
 
@@ -33,8 +32,8 @@ const FirstInitScreen = (props) => {
 
     const [isLoading, setIsLoading] = useState(false)
 
-    const [formHostname, setFormHostname] = useState("")
-    const [formIPAddr, setFormIPAddr] = useState("")
+    const [formPort, setFormPort] = useState("")
+    const [formAcessCode, setFormAcessCode] = useState("")
 
     const [sellersList, setSellersList] = useState(null)
     const [selectedSeller, setSelectedSeller] = useState(null)
@@ -58,10 +57,11 @@ const FirstInitScreen = (props) => {
         if (cameraData) {
             try {
                 jsonData = JSON.parse(cameraData)
-                if (jsonData.hostname && jsonData.IPAddr) {
+                if (jsonData.port && jsonData.acess_code) {
+                    setHaveError(false)
                     setIsQRValid(true)
-                    setFormHostname(jsonData.hostname)
-                    setFormIPAddr(jsonData.IPAddr)
+                    setFormPort(jsonData.port)
+                    setFormAcessCode(jsonData.acess_code)
                 } else {
                     setIsQRValid(false)
                 }
@@ -74,7 +74,7 @@ const FirstInitScreen = (props) => {
     //Removes the error when forms are filled
     useEffect(() => {
         setHaveError(false)
-    }, [formIPAddr, profileName])
+    }, [formPort, profileName])
 
     useEffect(async () => {
         if(screenStep === 2){
@@ -94,10 +94,13 @@ const FirstInitScreen = (props) => {
     }, [screenStep])
 
     useEffect(() => {
-        if(formIPAddr){
-            AsyncStorage.setItem("ipAdress", "http://" + formIPAddr + "/")
+        if(formPort){
+            AsyncStorage.setItem("serverInfo", JSON.stringify({
+                port: formPort,
+                acess_code: formAcessCode
+            }))
         }
-    }, [formIPAddr])
+    }, [formPort, formAcessCode])
 
     //Returns the correct screen based on the screen level
     const getScreen = (step) => {
@@ -193,27 +196,29 @@ const FirstInitScreen = (props) => {
                     <View style={styles.centerContent}>
                         <View style={styles.formContainer}>
                             <Text style={styles.containerPlaceholder}>
-                                {"IPAddr"}
+                                {"Porta"}
                             </Text>
                             <TextInputMask
                                 style={styles.input}
-                                value={formIPAddr}
-                                onChangeText={(val) => setFormIPAddr(val)}
+                                value={formPort}
+                                onChangeText={(val) => setFormPort(val)}
                                 autoCapitalize="characters"
-                                mask={"[999].[999].[999].[999]:[9999]"}
+                                mask={"[9999]"}
                                 keyboardType="phone-pad"
-                                placeholder="000.000.0000.000:0000"
+                                placeholder="0000"
                             />
                         </View>
                         <View style={styles.formContainer}>
                             <Text style={styles.containerPlaceholder}>
-                                {"Hostname"}
+                                {"Código de acesso"}
                             </Text>
-                            <TextInput
+                            <TextInputMask
                                 style={styles.input}
-                                value={formHostname}
-                                onChangeText={(val) => setFormHostname(val)}
-                                placeholder="Hostname"
+                                value={formAcessCode}
+                                mask={"[99999999]"}
+                                keyboardType="phone-pad"
+                                onChangeText={(val) => setFormAcessCode(val)}
+                                placeholder="00000000"
                             />
                         </View>
                     </View>
@@ -281,6 +286,7 @@ const FirstInitScreen = (props) => {
 
     const advanceScreenStep = async () => {
         if (screenStep == 1){
+            setIsLoading(true)
             if(await haveConnection()){
                 const user = await getUser()
                 if(user){
@@ -290,6 +296,7 @@ const FirstInitScreen = (props) => {
             else{
                 setHaveError(true)
             }
+            setIsLoading(false)
         }
         //This is only activated if the user not exists
         else if (screenStep == 2){
@@ -450,8 +457,9 @@ const FirstInitScreen = (props) => {
                             haverError ? styles.bottomButtonsError : null,
                         ]}
                         onPress={advanceScreenStep}
-                        disabled={haverError || isLoading}
+                        disabled={isLoading}
                     >
+                        <Text style={[styles.statusSphereLabel, {color: 'white'}]}>Avançar</Text>
                         {isLoading ? (
                             <ActivityIndicator size="large" color="#00ff00" />
                         ) : haverError ? (
@@ -563,11 +571,12 @@ const styles = StyleSheet.create({
         width: "100%",
         bottom: 0,
         paddingBottom: 10,
-        left: "70%",
+        alignItems: 'center'
     },
     bottomButtons: {
-        width: commonStyle.firstInitScreen.bottomButtons.size,
-        height: commonStyle.firstInitScreen.bottomButtons.size,
+        width: "50%",
+        flexDirection: "row",
+        height: commonStyle.firstInitScreen.bottomButtons.size / 1.5,
         borderRadius: commonStyle.firstInitScreen.bottomButtons.size / 2,
         justifyContent: "center",
         alignItems: "center",

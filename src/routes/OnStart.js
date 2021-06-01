@@ -16,7 +16,7 @@ const SplashToApp = props => {
     }
 
     useEffect(async () => {
-        if(await AsyncStorage.getItem('firstInit') != null){
+        if(await AsyncStorage.getItem('serverInfo') != null){
             changeToScreen("splash")
         }
         else{
@@ -37,7 +37,8 @@ const SplashToApp = props => {
 
     return (
         <NavigationContainer>
-            {getScreen()}
+            {/* {getScreen()} */}
+            <MainTabNavigation/>
         </NavigationContainer>
     )
 }
