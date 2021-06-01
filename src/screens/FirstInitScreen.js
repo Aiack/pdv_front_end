@@ -457,7 +457,9 @@ const FirstInitScreen = (props) => {
                             haverError ? styles.bottomButtonsError : null,
                         ]}
                         onPress={advanceScreenStep}
-                        disabled={isLoading}
+                        disabled={
+                            isLoading || 
+                            (screenStep == 1 && (!formPort || !formAcessCode))}
                     >
                         <Text style={[styles.statusSphereLabel, {color: 'white'}]}>Avançar</Text>
                         {isLoading ? (
@@ -578,7 +580,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         height: commonStyle.firstInitScreen.bottomButtons.size / 1.5,
         borderRadius: commonStyle.firstInitScreen.bottomButtons.size / 2,
-        justifyContent: "center",
+        justifyContent: "space-around",
         alignItems: "center",
         elevation: 1,
     },
