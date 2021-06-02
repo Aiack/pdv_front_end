@@ -10,8 +10,9 @@ const RESULTS = "RESULTS"
 const CONNECTION_ERROR = "CONNECTION_ERROR"
 
 class NetworkDiscoverer {
-    Timeout = 40
+    Timeout = 50
     Ports = [5151]
+    acessCode = null
 
     NewDeviceFoundSubscription = null
     ResultsSubscription = null
@@ -20,26 +21,23 @@ class NetworkDiscoverer {
     NoPortsSubscription = null
     ConnectionErrorSubscription = null
 
+    isSearching = false
+    serverUrl = null
+    isPinging = false
 
-    constructor(timeout = 40, ports = []) {
+    constructor(timeout = 50, ports = [], acessCode = null) {
         this.Timeout = timeout
         this.Ports = ports
+        this.acessCode = acessCode
     }
 
-    getLocalDevices = (
-        setResults,
-        setCheckingDevice,
-        setLoading,
-        setErrorMsg,
-        setNewDevice,
-        setDefault
-    ) => {
+    discoverLocalDevices = () => {
         this.NewDeviceFoundSubscription = DeviceEventEmitter.addListener(
-            NEW_DEVICE_FOUND, 
-            (device) => {
+            NEW_DEVICE_FOUND,
+            async (device) => {
                 if (device.ipAddress && device.port) {
-                    console.log(device)
-                    setNewDevice(device)
+                    this.serverUrl = await this.testConnection(device)
+                    this.cancelDiscovering()
                 }
             }
         )
@@ -47,34 +45,28 @@ class NetworkDiscoverer {
         this.ResultsSubscription = DeviceEventEmitter.addListener(
             RESULTS,
             (devices) => {
-                setResults(devices)
-                setLoading(false)
-                this.cancelDiscovering(setDefault)
+                this.cancelDiscovering()
             }
         )
 
         this.CheckDeviceSubscription = DeviceEventEmitter.addListener(
             CHECK,
             (device) => {
-                setCheckingDevice(device)
+                // On each device
             }
         )
 
         this.NoDevicesSubscription = DeviceEventEmitter.addListener(
             NO_DEVICES,
             () => {
-                setLoading(false)
-                setErrorMsg(NO_DEVICES)
-                this.cancelDiscovering(setDefault)
+                this.cancelDiscovering()
             }
         )
 
         this.NoPortsSubscription = DeviceEventEmitter.addListener(
             NO_PORTS,
             () => {
-                setLoading(false)
-                setErrorMsg(NO_PORTS)
-                this.cancelDiscovering(setDefault)
+                this.cancelDiscovering()
             }
         )
 
@@ -92,7 +84,7 @@ class NetworkDiscoverer {
         })
     }
 
-    cancelDiscovering = (setDefault) => {
+    cancelDiscovering = () => {
         FindLocalDevices.cancelDiscovering()
         if (this.NewDeviceFoundSubscription) {
             this.NewDeviceFoundSubscription.remove()
@@ -112,7 +104,49 @@ class NetworkDiscoverer {
         if (this.ConnectionErrorSubscription) {
             this.ConnectionErrorSubscription.remove()
         }
-        setDefault()
+        this.isSearching = false
+    }
+
+    getLocalDevicesPromisse = async () => {
+        this.isSearching = true
+
+        this.discoverLocalDevices()
+
+        return new Promise((resolve, reject) => {
+            const interval = setInterval(() => {
+                if ((!this.isSearching && !this.isPinging) || this.serverUrl) {
+                    resolve()
+                    clearInterval(interval)
+                }
+            }, this.Timeout * 2)
+        })
+    }
+
+    getLocalDevices = async () => {
+        await this.getLocalDevicesPromisse()
+        return this.serverUrl
+    }
+
+    testConnection = async (device) => {
+        this.isPinging = true
+        var serverUrl = null
+
+        if(this.acessCode){
+            try {
+                testUrl = "http://" + device.ipAddress + ":" + device.port + "/"
+                await axios({
+                    method: "GET",
+                    url: testUrl,
+                    timeout: 2000,
+                    params: {code: this.acessCode}
+                })
+                serverUrl = testUrl
+            } catch (error) {
+    
+            }
+        }
+        this.isPinging = false
+        return serverUrl
     }
 }
 

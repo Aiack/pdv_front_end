@@ -6,10 +6,10 @@ import CustomHeader from "../components/customHeader"
 
 import NetworkDiscoverer from "../utils/NetworkDiscoverer"
 
-const networkDiscoverer = new NetworkDiscoverer(50, [5151])
+const networkDiscoverer = new NetworkDiscoverer(50, [5151], 21212121)
 
 export default (props) => {
-    const [results, setResults] = useState([])
+    const [results, setResults] = useState("")
     const [checkingDevice, setCheckingDevice] = useState(null)
     const [loading, setLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState("")
@@ -21,15 +21,9 @@ export default (props) => {
         setLoading(false)
     }
 
-    const getLocalDevices = () => {
-        networkDiscoverer.getLocalDevices(
-            setResults,
-            setCheckingDevice,
-            setLoading,
-            setErrorMsg,
-            setNewDevice,
-            setDefault
-        )
+    const getLocalDevices = async () => {
+        const ipAdress = await networkDiscoverer.getLocalDevices()
+        setResults(ipAdress)
     }
 
     const cancelDiscovering = () => {
@@ -44,26 +38,7 @@ export default (props) => {
                 getLocalDevices()
                 }} />
             <Button title="cancel" onPress={() => cancelDiscovering()} />
-            {newDevice && 
-                <Text>New Device: {newDevice.ipAddress}:{newDevice.port}</Text>
-            }
-            {results ? results.map((result, index) => {
-                return (
-                    result && (
-                        <View style={styles.item} key={index}>
-                            <Text>
-                                Results found: {result.ipAddress}:
-                                {result.port}
-                            </Text>
-                        </View>
-                    )
-                )
-            }) : null}
-            <Text>
-                {checkingDevice
-                    ? checkingDevice.ipAddress + ":" + checkingDevice.port
-                    : null}
-            </Text>
+            <Text>{results}</Text>
         </View>
     )
 }
