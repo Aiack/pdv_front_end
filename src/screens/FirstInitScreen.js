@@ -13,6 +13,7 @@ import {
 import commonStyle from "../commonStyle"
 import CustomPicker from "../components/customPicker"
 import { haveConnection, getUser, createUser, getSellersList } from "../api/api"
+import NetworkDiscoverer from '../utils/NetworkDiscoverer'
 
 import IconFeather from "react-native-vector-icons/Feather"
 import IconMaterial from "react-native-vector-icons/MaterialCommunityIcons"
@@ -287,7 +288,18 @@ const FirstInitScreen = (props) => {
     const advanceScreenStep = async () => {
         if (screenStep == 1){
             setIsLoading(true)
-            if(await haveConnection()){
+
+            const networkDiscoverer = new NetworkDiscoverer(50, [parseInt(formPort)], formAcessCode)
+            const serverAdress = await networkDiscoverer.getLocalDevices()
+            console.log(serverAdress)
+
+            if(serverAdress){
+                await AsyncStorage.setItem("serverAdress", serverAdress)
+                await AsyncStorage.setItem("serverInfo", JSON.stringify({
+                    port: parseInt(formPort),
+                    acessCode: formAcessCode
+                }))
+
                 const user = await getUser()
                 if(user){
                     setScreenStep(3)
@@ -298,6 +310,7 @@ const FirstInitScreen = (props) => {
             }
             setIsLoading(false)
         }
+        
         //This is only activated if the user not exists
         else if (screenStep == 2){
             const user = await createUser({

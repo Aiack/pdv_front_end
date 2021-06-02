@@ -37,8 +37,8 @@ const SplashToApp = props => {
 
     return (
         <NavigationContainer>
-            {/* {getScreen()} */}
-            <MainTabNavigation/>
+            {getScreen()}
+            {/* <MainTabNavigation/> */}
         </NavigationContainer>
     )
 }

@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getUniqueId } from "react-native-device-info"
 
 const getIpAdress = async () => {
-    const ip = await AsyncStorage.getItem("ipAdress")
+    const ip = await AsyncStorage.getItem("serverAdress")
     return ip
 }
 
