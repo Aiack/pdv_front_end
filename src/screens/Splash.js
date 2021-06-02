@@ -12,6 +12,7 @@ import {
 import logo from "../../assets/imgs/logowhite.png"
 import commonStyles from "../commonStyle"
 import { getUser, haveConnection } from "../api/api"
+import NetworkDiscoverer from '../utils/NetworkDiscoverer'
 
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import IconFontAwesome from "react-native-vector-icons/FontAwesome"
@@ -56,6 +57,19 @@ export default (props) => {
             }
         }
         else{
+            const serverInfo = await AsyncStorage.getItem('serverInfo')
+            if(serverInfo){
+                const serverInfoJSON = JSON.parse(serverInfo)
+
+                const networkDiscoverer = new NetworkDiscoverer(50, [serverInfoJSON.port], serverInfoJSON.acessCode)
+                const serverAdress = await networkDiscoverer.getLocalDevices()
+
+                if(serverAdress){
+                    await AsyncStorage.setItem("serverAdress", serverAdress)
+                    makeConnection()
+                    return
+                }
+            }
             setWindowState("connectionError")
         }
     }
