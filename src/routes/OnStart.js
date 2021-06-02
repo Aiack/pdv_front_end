@@ -16,10 +16,17 @@ const SplashToApp = props => {
     }
 
     useEffect(async () => {
-        if(await AsyncStorage.getItem('serverInfo') != null){
+        const serverInfo = await AsyncStorage.getItem('serverInfo')
+        if(serverInfo){
             changeToScreen("splash")
         }
         else{
+            //Remove serverAdress if exists, serverInfo is more important
+            const serverAdress = await AsyncStorage.getItem('serverAdress')
+            if(serverAdress){
+                await AsyncStorage.removeItem('serverAdress')
+            }
+            
             changeToScreen("firstInit")
         }
     }, [])

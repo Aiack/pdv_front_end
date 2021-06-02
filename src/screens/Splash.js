@@ -35,6 +35,7 @@ export default (props) => {
 
     const changeToFirstInit = async () => {
         await AsyncStorage.removeItem("serverInfo")
+        await AsyncStorage.removeItem("serverAdress")
         props.changeToScreen("firstInit")
     }
 
